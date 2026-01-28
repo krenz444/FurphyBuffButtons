@@ -1,6 +1,8 @@
 -- ====================================
 -- \Options\Tabs\Alerts_Tab.lua
 -- ====================================
+-- This file creates the "Alerts" tab in the options panel, allowing users to configure
+-- raid alerts (announcements, sounds, visuals).
 
 local addonName, ns = ...
 ns.Options        = ns.Options or {}
@@ -13,6 +15,7 @@ local NS  = ns.NumberSelect
 local OE  = ns.OptionElements
 local SB  = ns.ScrollBar
 
+-- Layout constants
 local K = {
   LEFT_W = 305,
   RIGHT_W = 305,
@@ -45,17 +48,18 @@ local K = {
 }
 
 local function DB()  return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or {} end
+-- Retrieves raid announcer settings.
 local function RAID()
   local d = DB()
   d.raidAnnouncer = d.raidAnnouncer or {}
   local r = d.raidAnnouncer
   r.enabled = (r.enabled ~= false)
-  r.soundName = r.soundName or "Alerts: |cffff7d0Ffunki.gg|r Ding Dong"
+  r.customText = r.customText or {}
+  r.anchor = r.anchor or { x=0, y=180 }
+  r.soundName = r.soundName or "Alerts: Ding Dong"
   r.fontName = r.fontName or (O.GetDefault and O.GetDefault("fontName")) or "Friz Quadrata TT"
   r.fontSize = (r.fontSize and r.fontSize > 0) and r.fontSize or 60
   r.fontColor = r.fontColor or { r=1,g=1,b=1 }
-  r.customText = r.customText or {}
-  r.anchor = r.anchor or { x=0, y=180 }
   r.disableInCombat = (r.disableInCombat == true) and true or false
   r.period = tonumber(r.period) or 0.75
   r.amplitude = tonumber(r.amplitude) or 50
@@ -88,6 +92,7 @@ local function PaintBackdrop(frame, bg, br)
   frame:SetBackdropBorderColor((br and br[1]) or 0.22,(br and br[2]) or 0.24,(br and br[3]) or 0.30,(br and br[4]) or 1)
 end
 
+-- Builds a dropdown menu.
 local function BuildDropdown(parent)
   local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
   PaintBackdrop(btn); btn:SetHeight(26)
@@ -150,6 +155,7 @@ local function InstallHoverRevealMulti(resetBtn, watched)
   resetBtn:HookScript("OnLeave", tryHide)
 end
 
+-- Builds the "Enable" checkbox row.
 local function BuildEnableRow(content, startY, onToggle)
   local row = CreateFrame("Frame", nil, content)
   row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, startY)
@@ -210,6 +216,7 @@ local function BuildEnableRow(content, startY, onToggle)
   return row, cb
 end
 
+-- Builds the sound and font selection row.
 local function BuildSoundFontRow(content, startY, rightPad)
   local row, L, R = RowFrames(content, startY, K.ROW2_H)
   row:SetPoint("TOPRIGHT", content, "TOPRIGHT", -rightPad, startY)
@@ -262,7 +269,7 @@ local function BuildSoundFontRow(content, startY, rightPad)
   local sReset = OE.NewResetButton(lineL)
   sReset:ClearAllPoints(); sReset:SetPoint("LEFT", sLab, "RIGHT", 6, 0)
   sReset:SetScript("OnClick", function()
-    ConfirmReset("Reset sound to default?", function() ApplySound("Alerts: |cffff7d0Ffunki.gg|r Ding Dong") end)
+    ConfirmReset("Reset sound to default?", function() ApplySound("Alerts: Ding Dong") end)
   end)
   InstallHoverRevealMulti(sReset, { lineL, sBtn })
   local fBtn, fTxt, fCaret, fMenu, fBlock, fScroll, fContent, fBar = BuildDropdown(R)
@@ -322,6 +329,7 @@ local function BuildSoundFontRow(content, startY, rightPad)
   return row
 end
 
+-- Builds the font size and color row.
 local function BuildSizeColorRow(content, startY, rightPad)
   local row, L, R = RowFrames(content, startY, K.ROW3_H)
   row:SetPoint("TOPRIGHT", content, "TOPRIGHT", -rightPad, startY)
@@ -363,6 +371,7 @@ local function BuildSizeColorRow(content, startY, rightPad)
 end
 
 
+-- Builds the motion settings row.
 local function BuildMotionRow(content, startY, rightPad)
   local row, L, R = RowFrames(content, startY, K.MOTION_ROW_H)
   row:SetPoint("TOPRIGHT", content, "TOPRIGHT", -rightPad, startY)
@@ -444,6 +453,7 @@ local function LabelFor(key)
   return (src and src[key] and src[key].label) or key
 end
 
+-- Builds the custom text settings row.
 local function BuildTextsRow(parentForWidth, startY, rightPad, anchorUnder)
   local keys = AnnouncerKeys()
   local ROW_STEP   = K.TEXTS_ROW_STEP
@@ -507,6 +517,7 @@ local function BuildTextsRow(parentForWidth, startY, rightPad, anchorUnder)
   return row, K.ROW4_H
 end
 
+-- Registers the Alerts section.
 O.RegisterSection(function(AddSection)
   AddSection("Alerts", function(content)
     local SCROLLBAR_WIDTH = 14

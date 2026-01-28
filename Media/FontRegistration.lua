@@ -1,6 +1,9 @@
 -- ====================================
 -- \Media\FontRegistration.lua
 -- ====================================
+-- Registers all custom fonts with LibSharedMedia-3.0 for use throughout the addon.
+-- Fonts are organized by family (Aladin, Cinzel, FiraCode, FiraSans, etc.) and
+-- include various weights and styles. Used by Options/Panel.lua and UI/Render.lua.
 
 local addon = ...
 local LSM = LibStub("LibSharedMedia-3.0", true)

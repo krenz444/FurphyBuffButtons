@@ -1,12 +1,14 @@
 -- ====================================
 -- \Modules\Exclusions.lua
 -- ====================================
+-- This module manages the exclusion list, allowing users to hide specific buffs or items.
 
 local addonName, ns = ...
 
 local function DB() return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or {} end
 local function _ExSet() local d = DB(); d.exclusions = d.exclusions or {}; return d.exclusions end
 
+-- Checks if an ID is excluded.
 function ns.IsExcluded(id)
   if not id then return false end
   local d = (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or {}
@@ -17,11 +19,12 @@ function ns.IsExcluded(id)
   return false
 end
 
-
+-- Checks if an ID should be considered (not excluded).
 function ns.ShouldConsider(id)
   return not ns.IsExcluded(id)
 end
 
+-- Checks if a displayable entry is excluded.
 function ns.IsDisplayableExcluded(cat, entry)
   local d = (ns.GetDB and ns.GetDB()) or _G.ClickableRaidBuffsDB or {}
   d.exclusions = d.exclusions or {}
@@ -43,6 +46,7 @@ function ns.IsDisplayableExcluded(cat, entry)
   end
 end
 
+-- Helper to extract an ID from a frame.
 local function _maybeIDFromFrame(f)
   if not f then return nil end
   if f.itemID then return f.itemID end
@@ -57,6 +61,7 @@ local function _maybeIDFromFrame(f)
   return nil
 end
 
+-- Prunes excluded items from the render collections.
 local function _pruneRenderCollections()
   local changed = false
   local RF = ns.RenderFrames
@@ -84,6 +89,7 @@ local function _pruneRenderCollections()
   return changed
 end
 
+-- Helper to wrap functions with post-execution logic.
 local function _wrapOnce(tbl, key, flagKey, post)
   if not tbl or not key or tbl[flagKey] then return end
   local orig = tbl[key]
@@ -96,16 +102,19 @@ local function _wrapOnce(tbl, key, flagKey, post)
   end
 end
 
+-- Wrap render functions to ensure exclusions are applied.
 _wrapOnce(ns, "PushRender",          "_ex_wrap_pr1", _pruneRenderCollections)
 _wrapOnce(ns, "RenderAll",           "_ex_wrap_pr2", _pruneRenderCollections)
 _wrapOnce(ns, "RebuildDisplayables", "_ex_wrap_pr3", _pruneRenderCollections)
 _wrapOnce(ns, "RefreshEverything",   "_ex_wrap_pr4", _pruneRenderCollections)
 
+-- Prune on login.
 local _loginF = CreateFrame("Frame")
 _loginF:RegisterEvent("PLAYER_ENTERING_WORLD")
 _loginF:SetScript("OnEvent", function() C_Timer.After(0, _pruneRenderCollections) end)
 
 local _pendingRefresh
+-- Triggers a refresh of exclusions and rendering.
 function ns.Exclusions_RefreshNow()
   if _pendingRefresh then return end
   _pendingRefresh = true

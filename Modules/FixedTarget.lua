@@ -1,9 +1,12 @@
 -- ====================================
 -- \Modules\FixedTarget.lua
 -- ====================================
+-- This module handles fixed targets for certain buffs (e.g., Power Infusion, Augmentation Evoker buffs).
+-- It allows the user to "lock" a buff to a specific player.
 
 local addonName, ns = ...
 
+-- Helper to get the database
 local function DB()
     local d = (ns.GetDB and ns.GetDB()) or _G.ClickableRaidBuffsDB
     if type(d) ~= "table" then
@@ -14,6 +17,7 @@ local function DB()
     return d
 end
 
+-- Migrates legacy cache data to the new database structure.
 local function MigrateLegacyCache()
     if type(_G.clickableRaidBuffCache) == "table"
        and type(_G.clickableRaidBuffCache.fixedTargets) == "table" then
@@ -30,12 +34,14 @@ end
 
 local TRUNCATE_N = 6
 
+-- Gets a short name from a unit ID (removes realm).
 local function ShortNameFromUnit(unit)
     local name = UnitName(unit)
     if not name or name == "" then return nil end
     return name
 end
 
+-- Truncates a name to a fixed length.
 local function TruncatedShort(name)
     if not name then return nil end
     if TRUNCATE_N and TRUNCATE_N > 0 then
@@ -44,6 +50,8 @@ local function TruncatedShort(name)
     return name
 end
 
+-- Builds a list of spells that support fixed targeting based on the player's class.
+-- Skipped during combat.
 local function BuildTrackedSpellList()
     if InCombatLockdown() then return {} end
     local classID = _G.clickableRaidBuffCache
@@ -63,6 +71,7 @@ local function BuildTrackedSpellList()
     return out
 end
 
+-- Checks if a unit has a specific aura cast by the player.
 local function UnitHasMyAuraForRow(unit, row)
     if not unit or not row then return false end
     local wantByName, idLookup
@@ -92,6 +101,7 @@ local function UnitHasMyAuraForRow(unit, row)
     return false
 end
 
+-- Iterates over all group units.
 local function IterateGroupUnits()
     local units = {}
     if IsInRaid() then
@@ -105,6 +115,7 @@ local function IterateGroupUnits()
     return units
 end
 
+-- Cleans up the fixed target cache by removing players who are no longer in the group.
 local function CleanCacheForRoster()
     local present = {}
     for _, unit in ipairs(IterateGroupUnits()) do
@@ -122,6 +133,7 @@ local function CleanCacheForRoster()
     return changed
 end
 
+-- Rebuilds the fixed target cache by scanning current auras.
 local function RebuildFixedTargetCacheFromAuras()
     local tracked = BuildTrackedSpellList()
     if not next(tracked) then return false end
@@ -145,6 +157,8 @@ local function RebuildFixedTargetCacheFromAuras()
     return changed
 end
 
+-- Injects fixed target icons into the displayable list.
+-- Skipped during combat.
 function ns.FixedTarget_InjectIcons()
     if InCombatLockdown() then return end
     local display = _G.clickableRaidBuffCache and _G.clickableRaidBuffCache.displayable
@@ -178,6 +192,7 @@ function ns.FixedTarget_InjectIcons()
     end
 end
 
+-- Hooks RenderAll to inject icons.
 local function EnsureRenderHook()
     if ns._fixedTargetWrapped then return end
     if type(ns.RenderAll) == "function" then
@@ -190,6 +205,8 @@ local function EnsureRenderHook()
     end
 end
 
+-- Initializes the module.
+-- Skipped during combat.
 function ns.FixedTarget_Init()
     if InCombatLockdown() then return false end
     MigrateLegacyCache()
@@ -200,6 +217,8 @@ function ns.FixedTarget_Init()
     return (c1 or c2) and true or false
 end
 
+-- Handles roster changes.
+-- Skipped during combat.
 function ns.FixedTarget_OnRosterChanged()
     if InCombatLockdown() then return false end
     EnsureRenderHook()
@@ -209,6 +228,8 @@ function ns.FixedTarget_OnRosterChanged()
     return (c1 or c2) and true or false
 end
 
+-- Handles unit aura updates.
+-- Skipped during combat.
 function ns.FixedTarget_OnUnitAura(unit, updateInfo)
     if InCombatLockdown() then return false end
     if not unit or (unit ~= "player" and not unit:match("^party%d") and not unit:match("^raid%d")) then

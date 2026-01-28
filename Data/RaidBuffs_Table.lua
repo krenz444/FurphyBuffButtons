@@ -1,6 +1,17 @@
 -- ====================================
 -- \Data\RaidBuffs_Table.lua
 -- ====================================
+-- This file contains the core data tables defining all raid-wide buffs by class.
+-- Each entry specifies spell/buff IDs, targeting rules, check types (raid/player),
+-- gate conditions (rested, range, instance), and display labels.
+-- Structure: RAID_<CLASS> tables keyed by primary spellID with properties:
+--   - name: Spell name
+--   - spellID: Cast spell ID
+--   - buffID: Buff aura ID(s) to check (can be table for mutually exclusive buffs)
+--   - check: "raid" (check all raid members) or "player" (self only)
+--   - target: Usually "player"
+--   - gates: Array of gate checks (see Gates/ folder)
+--   - infinite: true for auras without duration
 
 ClickableRaidData  = ClickableRaidData  or {}
 ClickableRaidOrder = ClickableRaidOrder or {}

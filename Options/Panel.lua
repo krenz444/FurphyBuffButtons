@@ -1,12 +1,17 @@
 -- ====================================
 -- \Options\Panel.lua
 -- ====================================
+-- This file creates and manages the main options panel UI for the addon.
+-- Handles tab navigation, section registration, and overall layout of the
+-- addon's settings interface. Integrates with WoW's Settings API (modern)
+-- and legacy InterfaceOptionsFrame. Prevents opening during combat.
 
 local addonName, ns = ...
 ns.Options = ns.Options or {}
 local O = ns.Options
 local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
 
+-- Layout constants
 O.LABEL_LEFT_X             = O.LABEL_LEFT_X or 12
 O.ROW_LEFT_PAD             = O.ROW_LEFT_PAD or 10
 O.ROW_RIGHT_PAD            = O.ROW_RIGHT_PAD or 10
@@ -15,11 +20,13 @@ O.SECTION_GAP              = O.SECTION_GAP or 12
 O.SECTION_CONTENT_TOP_PAD  = O.SECTION_CONTENT_TOP_PAD or 36
 O.PAGE_CONTENT_TOP_PAD     = O.PAGE_CONTENT_TOP_PAD or 0
 
+-- Font constants
 O.PANEL_FONT_NAME          = O.PANEL_FONT_NAME or "FiraSans-Regular"
 O.TITLE_FONT_NAME          = O.TITLE_FONT_NAME or "FiraSans-ExtraBoldItalic"
 O.AUTHOR_LABEL_FONT_NAME   = O.AUTHOR_LABEL_FONT_NAME or "FiraSans-Medium"
 O.LABEL_ITALIC_FONT_NAME   = O.LABEL_ITALIC_FONT_NAME or "FiraSans-Italic"
 
+-- Size constants
 O.SIZE_TITLE               = O.SIZE_TITLE or 50
 O.SIZE_SECTION_HEAD        = O.SIZE_SECTION_HEAD or 20
 O.SIZE_LABEL               = O.SIZE_LABEL or 14
@@ -30,14 +37,17 @@ O.SIZE_TAB_LABEL           = O.SIZE_TAB_LABEL or 15
 O.RESET_W                  = O.RESET_W or 60
 O.RESET_H                  = O.RESET_H or 30
 
+-- Author info
 O.AUTHOR_LABEL_TEXT        = O.AUTHOR_LABEL_TEXT or "By |cffff7d0FFurphy|r"
 O.AUTHOR_LABEL_SIZE        = O.AUTHOR_LABEL_SIZE or 17
 O.AUTHOR_LABEL_X           = O.AUTHOR_LABEL_X or 335
 O.AUTHOR_LABEL_Y           = O.AUTHOR_LABEL_Y or -55
 
+-- Tab constants
 O.TAB_HEIGHT               = O.TAB_HEIGHT or 24
 O.TAB_COUNT				         = O.TAB_COUNT or 6
 
+-- Helper to get font path by name
 local function GetFontPathByName(name)
   if LSM and LSM.Fetch and name then
     local p = LSM:Fetch("font", name, true)
@@ -48,10 +58,12 @@ local function GetFontPathByName(name)
 end
 O.GetFontPathByName = GetFontPathByName
 
+-- Resolves the main panel font
 function O.ResolvePanelFont()
   return GetFontPathByName(O.PANEL_FONT_NAME) or "Fonts\\FRIZQT__.TTF"
 end
 
+-- Registry for option sections
 O._sections = O._sections or {}
 function O.RegisterSection(builder)
   if type(builder) == "function" then
@@ -59,9 +71,11 @@ function O.RegisterSection(builder)
   end
 end
 
+-- Create the main panel frame
 local panel = CreateFrame("Frame", addonName.."OptionsPanel", UIParent)
 panel.name = "Clickable Raid Buffs"
 
+-- Register with WoW Settings API
 local category, categoryID
 ns.OpenOptions = function()
   if InCombatLockdown and InCombatLockdown() then
@@ -93,12 +107,14 @@ if Settings and Settings.RegisterCanvasLayoutCategory then
   categoryID = category and category.ID or nil
 end
 
+-- Hide panel in combat
 local combatHider = CreateFrame("Frame")
 combatHider:RegisterEvent("PLAYER_REGEN_DISABLED")
 combatHider:SetScript("OnEvent", function()
   if panel:IsShown() then HideUIPanel(panel) end
 end)
 
+-- Tab styling configuration
 local TAB_CFG = {
   h        = O.TAB_HEIGHT or 24,
   padX     = 10,
@@ -111,6 +127,7 @@ local TAB_CFG = {
   textSel  = {1.00,1.00,1.00,1},
 }
 
+-- Styles a tab button
 local function StyleTab(btn, selected)
   if not btn.bg then
     btn.bg = btn:CreateTexture(nil, "BACKGROUND")
@@ -127,6 +144,7 @@ local function StyleTab(btn, selected)
   end
 end
 
+-- Applies custom tab ordering
 local function ApplyTabOrder(collected)
   if type(O.TAB_ORDER) ~= "table" or #O.TAB_ORDER == 0 then
     for _, it in ipairs(collected) do it.tabLabel = it.title end
@@ -153,6 +171,7 @@ local function ApplyTabOrder(collected)
   return collected
 end
 
+-- Builds the options panel UI
 local function Build()
   if panel._built then return end
   panel._built = true

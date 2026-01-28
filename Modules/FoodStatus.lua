@@ -1,6 +1,8 @@
 -- ====================================
 -- \Modules\FoodStatus.lua
 -- ====================================
+-- This module tracks the player's eating status and displays an icon if they are eating.
+-- It also handles suppressing the eating icon if the player is already "Well Fed".
 
 local addonName, ns = ...
 
@@ -20,6 +22,7 @@ local function DB()
   return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or {}
 end
 
+-- Calculates the threshold for showing the eating icon based on item duration settings.
 local function itemThresholdSeconds()
   local baseMin = (DB().itemThreshold or 5)
   if ns.MPlus_GetEffectiveThresholdSecs then
@@ -28,6 +31,7 @@ local function itemThresholdSeconds()
   return baseMin * 60
 end
 
+-- Builds sets of localized names for eating and well-fed buffs.
 function BuildNameSets()
   wipe(EATING_NAMES)
   wipe(WELLFED_NAMES)
@@ -57,6 +61,7 @@ end
 
 BuildNameSets()
 
+-- Ensures the display entry for eating exists.
 local function EnsureEatingEntry()
   clickableRaidBuffCache = clickableRaidBuffCache or {}
   clickableRaidBuffCache.displayable = clickableRaidBuffCache.displayable or {}
@@ -72,12 +77,14 @@ local function EnsureEatingEntry()
   return entry
 end
 
+-- Clears the eating display entry.
 local function ClearEatingEntry()
   if not clickableRaidBuffCache or not clickableRaidBuffCache.displayable then return end
   local cat = clickableRaidBuffCache.displayable["EATING"]
   if cat then cat["EATING"] = nil end
 end
 
+-- Scans the player's auras to check if they are currently eating.
 local function ScanPlayerEatingAura()
   local now = GetTime()
   for i=1, 40 do
@@ -96,6 +103,7 @@ local function ScanPlayerEatingAura()
   return false
 end
 
+-- Checks if the player has a "Well Fed" buff with sufficient duration remaining.
 local function HasWellFedOverThreshold(thresh)
   local now = GetTime()
   for i=1, 40 do
@@ -111,6 +119,8 @@ local function HasWellFedOverThreshold(thresh)
   return false
 end
 
+-- Recomputes the eating state and updates the display.
+-- Skipped during combat.
 function ns.RecomputeEatingState()
   if InCombatLockdown() then return end
   local found, aura, exp, dur, start, instID = ScanPlayerEatingAura()
@@ -140,6 +150,8 @@ function ns.RecomputeEatingState()
   end
 end
 
+-- Handles UNIT_AURA events to update eating status.
+-- Skipped during combat.
 local function OnUnitAura(unit, updateInfo)
   if InCombatLockdown() then return end
   if unit ~= "player" then return end
@@ -189,6 +201,7 @@ local function OnUnitAura(unit, updateInfo)
   end
 end
 
+-- Public handler for UNIT_AURA events.
 function ns.FoodStatus_OnUnitAura(unit, updateInfo)
   OnUnitAura(unit, updateInfo)
   if ns.Timer_RecomputeSchedule then ns.Timer_RecomputeSchedule() end

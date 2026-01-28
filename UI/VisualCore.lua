@@ -1,12 +1,14 @@
 -- ====================================
 -- \UI\VisualCore.lua
 -- ====================================
+-- This file provides core visual utility functions, primarily for font management.
 
 local addonName, ns = ...
 local LSM = LibStub("LibSharedMedia-3.0")
 
 ns.FontObjects = ns.FontObjects or {}
 
+-- Resolves a font name to a file path using LibSharedMedia.
 local function fontPath(name)
   if LSM then
     local ok, path = pcall(LSM.Fetch, LSM, "font", name or "Friz Quadrata TT")
@@ -15,6 +17,7 @@ local function fontPath(name)
   return name or "Fonts\\FRIZQT__.TTF"
 end
 
+-- Retrieves or creates a FontObject for the given parameters.
 if not ns.GetFontObject then
   function ns.GetFontObject(fontName, size, outline)
     local key = tostring(fontName or "") .. ":" .. tostring(size or "") .. ":" .. ((outline and "OUTLINE") or "")
@@ -28,6 +31,7 @@ if not ns.GetFontObject then
   end
 end
 
+-- Updates a FontString with the specified text, font, size, outline, and color.
 if not ns.UpdateFontString then
   function ns.UpdateFontString(fs, text, fontName, size, outline, color)
     if not fs then return end

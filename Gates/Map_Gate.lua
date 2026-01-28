@@ -1,6 +1,9 @@
 -- ====================================
 -- \Gates\Map_Gate.lua
 -- ====================================
+-- Gates that filter icons based on the player's current map ID.
+-- "map": passes only when on a specific map (positive match).
+-- "notMap": passes when NOT on a specific map (negative match).
 
 local addonName, ns = ...
 

@@ -1,6 +1,7 @@
 -- ====================================
 -- \Options\Controls.lua
 -- ====================================
+-- This file handles slash commands and general control functions for the addon.
 
 local addonName, ns = ...
 local O = ns.Options
@@ -9,6 +10,7 @@ local function DB()
   return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or {}
 end
 
+-- Syncs option UI elements with current database values.
 function ns.SyncOptions()
   local db = DB()
   local sSpell = _G["CRB_Threshold_spellThreshold"]; if sSpell then sSpell:SetValue(db.spellThreshold or O.DEFAULTS.spellThreshold or 15) end
@@ -19,6 +21,7 @@ function ns.SyncOptions()
   if ns.Options and ns.Options.SyncFontControls then ns.Options.SyncFontControls() end
 end
 
+-- Safely closes the options panel.
 local function SafeCloseOptions()
   if ns.OptionsFrame and ns.OptionsFrame:IsShown() then
     SettingsPanel:Hide()
@@ -26,6 +29,8 @@ local function SafeCloseOptions()
 end
 
 local reopenAfterCombat = false
+-- Requests to unlock the mover frame.
+-- Handles combat restrictions by deferring the action.
 function ns.RequestUnlock()
   if InCombatLockdown() then
     print("|cFF00ccffCRB:|r Cannot unlock during combat. Will unlock after combat ends.")
@@ -37,6 +42,7 @@ function ns.RequestUnlock()
   end
 end
 
+-- Popup dialog for resetting settings.
 StaticPopupDialogs["CRB_RESET_CONFIRM"] = {
   text = "Are you sure you want to reset Clickable Raid Buffs to default? This action cannot be undone.",
   button1 = YES,
@@ -58,10 +64,12 @@ StaticPopupDialogs["CRB_RESET_CONFIRM"] = {
   preferredIndex = 3,
 }
 
+-- Triggers the reset confirmation popup.
 function ns.ResetToDefaults()
   StaticPopup_Show("CRB_RESET_CONFIRM")
 end
 
+-- Handles combat events to manage frame locking/unlocking.
 local combatFrame = CreateFrame("Frame")
 combatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 combatFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
@@ -79,6 +87,7 @@ combatFrame:SetScript("OnEvent", function(_, event)
   end
 end)
 
+-- Slash commands registration.
 SLASH_CLICKABLERAIDBUFFS1 = "/crb"
 SLASH_CLICKABLERAIDBUFFS2 = "/buff"
 SLASH_CLICKABLERAIDBUFFS3 = "/furphy"

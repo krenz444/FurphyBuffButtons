@@ -1,6 +1,9 @@
 -- ====================================
 -- \Gates\WarlockSacrifice_Gate.lua
 -- ====================================
+-- Warlock-specific gates checking for Grimoire of Sacrifice spell/buff status.
+-- "wl_sacrifice": passes only for warlocks with the spell known, pet present, and buff absent.
+-- "wl_no_sacrifice": passes when the sacrifice buff is not active.
 
 local addonName, ns = ...
 

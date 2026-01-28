@@ -1,6 +1,7 @@
 -- ====================================
 -- \Options\ScrollBar.lua
 -- ====================================
+-- This file implements a custom scrollbar for the options panel.
 
 local addonName, ns = ...
 ns.ScrollBar = ns.ScrollBar or {}
@@ -15,10 +16,12 @@ local CFG = {
   padTrackBottom = 2,
 }
 
+-- Clamps a value between a minimum and maximum.
 local function clamp(v, lo, hi)
   if v < lo then return lo elseif v > hi then return hi else return v end
 end
 
+-- Creates a new scrollbar frame.
 function ns.ScrollBar.Create(parent, opts)
   opts = opts or {}
   local W    = opts.width       or CFG.width

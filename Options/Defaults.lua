@@ -1,11 +1,13 @@
 -- ====================================
 -- \Options\Defaults.lua
 -- ====================================
+-- This file defines the default settings for the addon.
 
 local addonName, ns = ...
 ns.Options = ns.Options or {}
 local O = ns.Options
 
+-- Default configuration values
 local D = {
   fontName = "Oswald-Medium",
 
@@ -30,6 +32,8 @@ local D = {
 
 O.DEFAULTS = D
 
+-- Retrieves a default value by key.
+-- Returns a copy for tables to prevent modification of the default table.
 function O.GetDefault(key)
   local v = D[key]
   if type(v) == "table" then

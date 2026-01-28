@@ -1,6 +1,7 @@
 -- ====================================
 -- \Modules\Healthstone.lua
 -- ====================================
+-- This module handles the display of Healthstones and Soulwells for Warlocks and other classes.
 
 local addonName, ns = ...
 
@@ -30,6 +31,7 @@ local function IsRested() return (clickableRaidBuffCache.playerInfo and clickabl
 local function InInstance() return (clickableRaidBuffCache.playerInfo and clickableRaidBuffCache.playerInfo.inInstance) or select(1, IsInInstance()) end
 local function IsGrouped() return IsInGroup() or IsInRaid() end
 
+-- Retrieves exclusion sets from the database.
 local function _ExSets()
   local d = DB()
   d.exclusions = d.exclusions or {}
@@ -37,22 +39,26 @@ local function _ExSets()
   return d.exclusions, d.raidBuffExclusions
 end
 
+-- Checks if an ID is excluded.
 local function IsExcludedID(id)
   if not id then return false end
   local ex, rb = _ExSets()
   return (ex[id] or rb[id]) and true or false
 end
 
+-- Checks if Healthstones are globally excluded.
 local function IsHealthstoneGloballyExcluded()
   return IsExcludedID(ITEM_HEALTHSTONE) or IsExcludedID(ITEM_DEMONIC_HEALTHSTONE)
 end
 
+-- Counts the number of Healthstone charges in bags.
 local function CountCharges(itemID)
   local ok, n = pcall(C_Item.GetItemCount, itemID, false, true)
   if ok and n then return n end
   return C_Item.GetItemCount(itemID, false) or 0
 end
 
+-- Finds the bag and slot of an item.
 local function FindItemBagSlot(itemID)
   for bag=0,NUM_BAG_SLOTS do
     local slots=C_Container.GetContainerNumSlots(bag)
@@ -65,6 +71,8 @@ local function FindItemBagSlot(itemID)
   end
 end
 
+-- Checks if there is a Warlock in the group.
+-- Skipped during combat.
 local function HasWarlockInGroup()
   if InCombat() then return false end -- UnitClass returns secret in combat
   if IsInRaid() then
@@ -81,15 +89,19 @@ local function HasWarlockInGroup()
   return false
 end
 
+-- Ensures the display category for Healthstones exists.
 local function ensureCat()
   clickableRaidBuffCache.displayable[CAT]=clickableRaidBuffCache.displayable[CAT] or {}
   return clickableRaidBuffCache.displayable[CAT]
 end
+
+-- Clears the Healthstone display category.
 local function clearCat()
   if clickableRaidBuffCache.displayable[CAT] then wipe(clickableRaidBuffCache.displayable[CAT]) end
 end
 
 ns.HealthstoneSoulwellVisible = true
+-- Toggles Soulwell visibility.
 local function FlipSoulwell(show)
   local new = not not show
   if ns.HealthstoneSoulwellVisible ~= new then
@@ -98,11 +110,13 @@ local function FlipSoulwell(show)
 end
 
 local soulwellTimer
+-- Cancels any pending Soulwell wake timer.
 local function CancelSoulwellWake()
   if soulwellTimer and soulwellTimer.Cancel then soulwellTimer:Cancel() end
   soulwellTimer = nil
 end
 
+-- Reads spell cooldown information.
 local function ReadSpellCooldown(spellID)
   if GetSpellCooldown then
     local start, dur, enable = GetSpellCooldown(spellID)
@@ -120,6 +134,7 @@ local function ReadSpellCooldown(spellID)
   return 0, 0, 0
 end
 
+-- Checks remaining cooldown of a spell.
 local function SpellCooldownRemaining(spellID)
   local start, dur, enable = ReadSpellCooldown(spellID)
   if enable ~= 1 or not dur or dur <= 1.5 or not start or start <= 0 then
@@ -131,6 +146,7 @@ local function SpellCooldownRemaining(spellID)
   return left > 0, left, endsAt
 end
 
+-- Schedules a rebuild when Soulwell cooldown finishes.
 local function ScheduleSoulwellWake(seconds)
   CancelSoulwellWake()
   if seconds and seconds > 0 then
@@ -142,6 +158,8 @@ local function ScheduleSoulwellWake(seconds)
   end
 end
 
+-- Rebuilds the Healthstone display list.
+-- Skipped during combat.
 function Build(fromRender)
   if InCombat() then clearCat(); CancelSoulwellWake(); return end
   if IsDeadOrGhostNow() then clearCat(); CancelSoulwellWake(); return end
@@ -258,10 +276,12 @@ function Build(fromRender)
   end
 end
 
+-- Public API to rebuild Healthstone display.
 function ns.Healthstone_Rebuild()
   Build()
 end
 
+-- Applies visual fixups after rendering.
 local function AfterRenderFixups()
   if not ns.RenderFrames then return end
   for _, btn in ipairs(ns.RenderFrames) do
@@ -282,6 +302,7 @@ local function AfterRenderFixups()
   end
 end
 
+-- Hooks RenderAll to apply fixups.
 local function EnsureRenderHook()
   if ns._healthstone_wrapped then return end
   if type(ns.RenderAll) == "function" then
@@ -299,6 +320,7 @@ EnsureRenderHook()
 C_Timer.After(0.05, EnsureRenderHook)
 C_Timer.After(0.5, EnsureRenderHook)
 
+-- Ensures Soulwell is listed in exclusions for Warlocks.
 local function EnsureSoulwellListedInExclusions()
   local root = _G.ClickableRaidData or {}
   root.ALL_RAID_BUFFS_BY_CLASS = root.ALL_RAID_BUFFS_BY_CLASS or {}
@@ -321,6 +343,7 @@ local function EnsureSoulwellListedInExclusions()
 end
 C_Timer.After(0.10, EnsureSoulwellListedInExclusions)
 
+-- Event handlers
 function ns.Healthstone_OnPEW()
   FlipSoulwell(true)
   Build()
@@ -388,22 +411,9 @@ function ns.Healthstone_OnEncounterEnd()
   return true
 end
 
+-- Handles combat log events (currently disabled/restricted).
 function ns.Healthstone_OnCombatLogEventUnfiltered()
-  local _, subevent, _, srcGUID, _, _, _, _, _, _, _, spellID = CombatLogGetCurrentEventInfo()
-  if subevent == "SPELL_CAST_SUCCESS" and spellID == SPELL_HEALTHSTONE_USE then
-    local inMyGroup=false
-    if IsInRaid() then
-      for i=1,GetNumGroupMembers() do if UnitGUID("raid"..i)==srcGUID then inMyGroup=true break end end
-    elseif IsInGroup() then
-      for i=1,GetNumGroupMembers()-1 do if UnitGUID("party"..i)==srcGUID then inMyGroup=true break end end
-    end
-    if not inMyGroup and UnitGUID("player")==srcGUID then inMyGroup=true end
-    if inMyGroup then
-      FlipSoulwell(true)
-      Build()
-      return true
-    end
-  end
+  -- CLEU is restricted, this function is effectively disabled or needs alternative trigger
   return false
 end
 

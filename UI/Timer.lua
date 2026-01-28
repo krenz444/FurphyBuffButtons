@@ -1,12 +1,14 @@
 -- ====================================
 -- \UI\Timer.lua
 -- ====================================
+-- This file handles the display of timers on buttons (e.g., buff duration, cooldowns).
 
 local addonName, ns = ...
 ns = ns or {}
 
 local function now() return GetTimePreciseSec() end
 
+-- Formats remaining time into a string (e.g., "1:30").
 local function fmt_bottom(remaining)
   remaining = math.max(0, remaining)
   local m = math.floor(remaining / 60)
@@ -18,6 +20,7 @@ local function fmt_bottom(remaining)
   end
 end
 
+-- Updates the timer text displayed below a button.
 local function updateBottomTimer(btn, entry, tNow)
   local tt = btn and btn.timerText
   if not (tt and entry) then return end
@@ -83,11 +86,13 @@ end
 
 local _ticker
 
+-- Stops the update ticker.
 local function stopTicker()
   if _ticker and _ticker.Cancel then _ticker:Cancel() end
   _ticker = nil
 end
 
+-- Checks if any timers are currently active.
 local function anyActive(tNow)
   local frames = ns.RenderFrames
   if not (frames and #frames > 0) then return false end
@@ -120,6 +125,8 @@ local function anyActive(tNow)
   return false
 end
 
+-- The ticker function that updates timers.
+-- Skipped during combat.
 local function tick()
   if ns._inCombat or (IsEncounterInProgress and IsEncounterInProgress()) or (UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")) or InCombatLockdown() then
     stopTicker()
@@ -175,6 +182,8 @@ local function tick()
   end
 end
 
+-- Starts or stops the timer ticker based on activity.
+-- Skipped during combat.
 function ns.Timer_RecomputeSchedule()
   if ns._inCombat or (IsEncounterInProgress and IsEncounterInProgress()) or (UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")) or InCombatLockdown() then
     stopTicker()
@@ -187,10 +196,12 @@ function ns.Timer_RecomputeSchedule()
   end
 end
 
+-- Stops the timer ticker.
 function ns.Timer_Stop()
   stopTicker()
 end
 
+-- Hooks Cooldown_RefreshAll to recompute timer schedule.
 do
   if type(ns.Cooldown_RefreshAll) == "function" and not ns._crb_cd_refresh_wrapped then
     local _orig = ns.Cooldown_RefreshAll

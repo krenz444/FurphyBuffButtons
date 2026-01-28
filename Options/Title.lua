@@ -1,11 +1,14 @@
 -- ====================================
 -- \Options\Title.lua
 -- ====================================
+-- This file creates the title section of the options panel, including the addon name,
+-- author credits, logo, and copyable links (though links are currently removed).
 
 local addonName, ns = ...
 local O = ns.Options
 local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
 
+-- Configuration for the title section layout
 local CFG = {
   TOP_PAD = 10,
 
@@ -84,6 +87,7 @@ local CFG = {
 
 local SHIFT_UP = (O.SECTION_CONTENT_TOP_PAD or 36) - CFG.TOP_PAD
 
+-- Visual feedback for copying text
 local function PulseOK(ok)
   if not ok then return end
   ok:Show()
@@ -92,6 +96,7 @@ local function PulseOK(ok)
   if path then PlaySoundFile(path, "Master") else PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON) end
 end
 
+-- Helper to resolve anchor frames by tag
 local function anchorFrameByTag(tag, env)
   if tag == "box"    then return env.box end
   if tag == "canvas" then return env.canvas end
@@ -101,6 +106,7 @@ local function anchorFrameByTag(tag, env)
   return env.canvas
 end
 
+-- Creates a copyable text field with a label
 local function MakeCopyColumn(parent, labelText, urlText)
   local col = CreateFrame("Frame", nil, parent)
   col:SetHeight(CFG.Edit.height + 18)
@@ -167,6 +173,7 @@ local function MakeCopyColumn(parent, labelText, urlText)
   return col
 end
 
+-- Registers the title section
 O.RegisterSection(function(AddSection)
   AddSection("", function(content, Row)
     local row = Row(CFG.Row.mode == "fixed" and CFG.Row.fixedHeight or 120)

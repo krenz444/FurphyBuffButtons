@@ -1,6 +1,9 @@
 -- ====================================
 -- \Gates\Range_Gate.lua
 -- ====================================
+-- Complex gate that monitors spell range to raid members who are missing buffs.
+-- Suppresses icons when no missing raid members are in range, shows them when targets
+-- are available. Uses a 2-second ticker for efficient range checks and glow updates.
 
 local addonName, ns = ...
 ns = ns or {}

@@ -1,6 +1,7 @@
 -- ====================================
 -- \Core\Events.lua
 -- ====================================
+-- This file handles event registration and dispatching to various modules.
 
 local addonName, ns = ...
 ns = ns or {}
@@ -8,6 +9,7 @@ ns = ns or {}
 local debounce = 0.03
 local f = CreateFrame("Frame")
 
+-- Register events
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
 f:RegisterEvent("PLAYER_ENTERING_BATTLEGROUND")
 f:RegisterEvent("PLAYER_LEVEL_UP")
@@ -46,26 +48,31 @@ f:RegisterEvent("UNIT_PET")
 f:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
 f:RegisterEvent("PLAYER_LOGIN")
 
+-- Helper to trigger an update
 local function poke()
   if type(ns.PokeUpdateBus) == "function" then ns.PokeUpdateBus() end
 end
 
+-- Helper to refresh cooldowns
 local function refreshCooldowns()
   if type(ns.Cooldown_RefreshAll) == "function" then ns.Cooldown_RefreshAll() end
 end
 
+-- Checks if an encounter is in progress
 local function inEncounter()
   if ns._inEncounter then return true end
   if IsEncounterInProgress and IsEncounterInProgress() then return true end
   return false
 end
 
+-- Checks if the player is dead or a ghost
 local function isDead()
   if ns._isDead then return true end
   if UnitIsDeadOrGhost and UnitIsDeadOrGhost("player") then return true end
   return false
 end
 
+-- Checks if the addon should be locked (no updates) due to combat or other states
 local function locked()
   if ns._inCombat then return true end
   if InCombatLockdown and InCombatLockdown() then return true end
@@ -74,6 +81,7 @@ local function locked()
   return false
 end
 
+-- Runs various update functions after combat or other blocking states end
 local function postCatchup()
   if type(ns.MarkGatesDirty)                     == "function" then ns.MarkGatesDirty()                     end
   if type(ns.MarkRosterDirty)                    == "function" then ns.MarkRosterDirty()                    end
@@ -97,6 +105,7 @@ local function postCatchup()
 end
 
 local pokeArmed, cdArmed
+-- Debounced update trigger
 local function armPoke(delay)
   if pokeArmed then return end
   pokeArmed = true
@@ -106,6 +115,7 @@ local function armPoke(delay)
   end)
 end
 
+-- Debounced cooldown refresh trigger
 local function armCooldown(delay)
   if cdArmed then return end
   cdArmed = true
@@ -115,6 +125,7 @@ local function armCooldown(delay)
   end)
 end
 
+-- Checks if weapon enchants need updating
 local function maybeUpdateWeaponEnchants()
   local fn = _G.updateWeaponEnchants
   if type(fn) == "function" then
@@ -127,6 +138,7 @@ end
 local THROTTLE = 1.0
 
 local auraBuf = { units = {}, pendingPlayer = nil, timer = nil, lastRun = 0 }
+-- Processes a single UNIT_AURA event
 local function process_UNIT_AURA(unit, updateInfo)
   if unit == "player" then
     if type(ns.FoodStatus_OnUnitAura)   == "function" then ns.FoodStatus_OnUnitAura(unit, updateInfo) end
@@ -153,6 +165,7 @@ local function process_UNIT_AURA(unit, updateInfo)
   end
 end
 
+-- Flushes buffered aura events
 local function flushAuras()
   auraBuf.timer = nil
   local queuedPlayer = auraBuf.pendingPlayer
@@ -169,6 +182,7 @@ local function flushAuras()
   auraBuf.lastRun = GetTime()
 end
 
+-- Buffers UNIT_AURA events to avoid excessive processing
 local function on_UNIT_AURA(unit, updateInfo)
   if unit == "player" then
     auraBuf.pendingPlayer = updateInfo or true
@@ -187,7 +201,39 @@ local function on_UNIT_AURA(unit, updateInfo)
   end
 end
 
+local cleuBuf = { pending = false, timer = nil, lastRun = 0 }
+-- Flushes buffered CLEU events (currently unused as CLEU is disabled)
+local function flushCLEU()
+  cleuBuf.timer = nil
+  if cleuBuf.pending then
+    cleuBuf.pending = false
+    local any = false
+    if type(ns.Healthstone_OnCombatLogEventUnfiltered) == "function" then
+      if ns.Healthstone_OnCombatLogEventUnfiltered() then any = true end
+    end
+    if type(ns.Trinkets_OnCombatLogEventUnfiltered) == "function" then
+      if ns.Trinkets_OnCombatLogEventUnfiltered() then any = true end
+    end
+    if any then armPoke(0) end
+    cleuBuf.lastRun = GetTime()
+  end
+end
+
+-- Buffers CLEU events (currently unused)
+local function on_CLEU()
+  cleuBuf.pending = true
+  local dt = GetTime() - (cleuBuf.lastRun or 0)
+  if dt >= THROTTLE then
+    flushCLEU()
+  elseif not cleuBuf.timer then
+    cleuBuf.timer = C_Timer.NewTimer(THROTTLE - dt, function()
+      if not locked() then flushCLEU() else cleuBuf.timer = C_Timer.NewTimer(0.05, flushCLEU) end
+    end)
+  end
+end
+
 local uscsBuf = { events = {}, timer = nil, lastRun = 0 }
+-- Flushes buffered UNIT_SPELLCAST_SUCCEEDED events
 local function flushUSCS()
   uscsBuf.timer = nil
   local any = false
@@ -202,6 +248,7 @@ local function flushUSCS()
   if any then armPoke(0) end
 end
 
+-- Buffers UNIT_SPELLCAST_SUCCEEDED events
 local function on_USCS(unit, castGUID, spellID)
   uscsBuf.events[#uscsBuf.events+1] = { unit = unit, castGUID = castGUID, spellID = spellID }
   local dt = GetTime() - (uscsBuf.lastRun or 0)
@@ -214,17 +261,21 @@ local function on_USCS(unit, castGUID, spellID)
   end
 end
 
+-- Bypasses event throttling (e.g., for immediate updates)
 function ns.BypassEventThrottle()
   if auraBuf.timer then auraBuf.timer:Cancel(); auraBuf.timer = nil end
+  if cleuBuf.timer then cleuBuf.timer:Cancel(); cleuBuf.timer = nil end
   if uscsBuf.timer then uscsBuf.timer:Cancel(); uscsBuf.timer = nil end
   if not locked() then
     if auraBuf.pendingPlayer or next(auraBuf.units) then flushAuras() end
+    if cleuBuf.pending then flushCLEU() end
     if #uscsBuf.events > 0 then flushUSCS() end
   else
     C_Timer.After(0.05, ns.BypassEventThrottle)
   end
 end
 
+-- Main event handler
 f:SetScript("OnEvent", function(_, event, ...)
   if event == "PLAYER_LOGIN" then
     f:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
@@ -501,6 +552,11 @@ f:SetScript("OnEvent", function(_, event, ...)
 
   if event == "CHALLENGE_MODE_MAPS_UPDATE" then
     if type(ns.MythicPlus_OnMapsUpdate) == "function" then ns.MythicPlus_OnMapsUpdate() end
+    return
+  end
+
+  if event == "COMBAT_LOG_EVENT_UNFILTERED" then
+    on_CLEU()
     return
   end
 

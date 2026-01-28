@@ -1,6 +1,7 @@
 -- ====================================
 -- \Modules\AugmentRune.lua
 -- ====================================
+-- This module handles the tracking and display of Augment Runes.
 
 local addonName, ns = ...
 ns = ns or {}
@@ -17,6 +18,7 @@ local function DB()
   return (ns.GetDB and ns.GetDB()) or _G.ClickableRaidBuffsDB or {}
 end
 
+-- Calculates the threshold for showing the rune icon based on item duration settings.
 local function itemThresholdSeconds()
   local db = DB()
   local baseMin = db.itemThreshold or 5
@@ -26,10 +28,12 @@ local function itemThresholdSeconds()
   return baseMin * 60
 end
 
+-- Retrieves Augment Rune data from the global data table.
 local function RuneData()
   return (ClickableRaidData and ClickableRaidData["AUGMENT_RUNE"]) or {}
 end
 
+-- Checks if the rune passes gating requirements (instance, rested, group).
 local function passesGates(gates)
   if not gates or #gates == 0 then return true end
   for i = 1, #gates do
@@ -46,10 +50,12 @@ local function passesGates(gates)
   return true
 end
 
+-- Gets the count of a specific item in the player's bags.
 local function getCount(itemID)
   return GetItemCount(itemID, false) or 0
 end
 
+-- Checks if the player has any of the specified buffs and returns the expiration time.
 local function GetExpireForIDs(ids)
   if ns.GetPlayerBuffExpire then
     return ns.GetPlayerBuffExpire(ids, false, false)
@@ -75,6 +81,7 @@ local function GetExpireForIDs(ids)
 end
 
 local _buffSet, _buffUnion
+-- Initializes lookup tables for rune buffs.
 local function ensureRuneBuffLookups()
   if _buffSet then return end
   local runes = RuneData()
@@ -95,6 +102,8 @@ local function ensureRuneBuffLookups()
   _buffUnion = list
 end
 
+-- Rebuilds the Augment Rune display list.
+-- Skipped during combat.
 local function rebuildAugmentRune()
   if InCombatLockdown() then return end
 
@@ -162,6 +171,8 @@ local function rebuildAugmentRune()
   if ns.Timer_RecomputeSchedule then ns.Timer_RecomputeSchedule() end
 end
 
+-- Handles UNIT_AURA events to update rune status.
+-- Skipped during combat.
 local function AugmentRune_OnPlayerAura(unit, updateInfo)
   if InCombatLockdown() then return end
   if unit ~= "player" then return end

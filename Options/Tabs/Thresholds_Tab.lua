@@ -1,6 +1,8 @@
 -- ====================================
 -- \Options\Tabs\Thresholds_Tab.lua
 -- ====================================
+-- This file creates the "Thresholds" tab in the options panel, allowing users to configure
+-- time and quantity thresholds for various buffs and items.
 
 local addonName, ns = ...
 local O  = ns.Options
@@ -11,6 +13,8 @@ local defaults = (O and O.DEFAULTS) or {}
 
 local KNOB = { ROW_H_TOP = 90 }
 
+-- Applies the new threshold settings and triggers a rebuild.
+-- Debounced to prevent excessive updates.
 function applyThresholds()
   if ns._throttleThresholdsTimer then return end
   ns._throttleThresholdsTimer = true
@@ -32,10 +36,12 @@ function applyThresholds()
   end)
 end
 
+-- Registers the Thresholds section.
 O.RegisterSection(function(AddSection)
   AddSection("Thresholds", function(content, Row)
     local d = DB()
 
+    -- Helper to add a number selection widget to a row.
     local function AddNumSelectHalf(rowFrame, side, key, label, minV, maxV, stepV, defFallback)
       local cell = CreateFrame("Frame", nil, rowFrame)
       if side == "LEFT" then

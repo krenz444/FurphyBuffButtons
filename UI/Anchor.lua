@@ -1,6 +1,7 @@
 -- ====================================
 -- \UI\Anchor.lua
 -- ====================================
+-- This file handles the positioning and saving of the main addon frame anchor.
 
 local addonName, ns = ...
 clickableRaidBuffCache = clickableRaidBuffCache or {}
@@ -8,10 +9,12 @@ clickableRaidBuffCache = clickableRaidBuffCache or {}
 local function InCombat() return InCombatLockdown() end
 local function DB() return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or {} end
 
+-- Retrieves the main parent frame.
 local function EnsureParent()
   return ns and ns.RenderParent
 end
 
+-- Reads the current anchor point of a frame.
 local function ReadPoint(frame)
   local p, rel, rp, x, y = frame:GetPoint(1)
   if not p then
@@ -21,6 +24,8 @@ local function ReadPoint(frame)
   return p, relName, rp or "CENTER", x or 0, y or 0
 end
 
+-- Applies the saved anchor position from the database.
+-- Skipped during combat.
 local function ApplySavedAnchor()
   if InCombat() then
     clickableRaidBuffCache._anchor_pending = true
@@ -43,6 +48,7 @@ local function ApplySavedAnchor()
   clickableRaidBuffCache._anchor_pending = nil
 end
 
+-- Saves the current anchor position to the database.
 local function SaveAnchor()
   local parent = EnsureParent()
   if not parent then return end
@@ -56,6 +62,7 @@ local function SaveAnchor()
   db.anchor.y             = y or 0
 end
 
+-- Hooks drag events to save the anchor position.
 local function HookDragSavers()
   local parent = EnsureParent()
   if not parent or parent._crb_anchor_hooks then return end
@@ -65,6 +72,7 @@ local function HookDragSavers()
   parent._crb_anchor_hooks = true
 end
 
+-- Attempts to setup the anchor.
 local function TrySetup()
   local parent = EnsureParent()
   if parent then
@@ -75,6 +83,7 @@ local function TrySetup()
   return false
 end
 
+-- Event handler for loading and saving anchor position.
 local f = CreateFrame("Frame")
 f:RegisterEvent("PLAYER_LOGIN")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")

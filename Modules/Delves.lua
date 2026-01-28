@@ -1,6 +1,7 @@
 -- ====================================
 -- \Modules\Delves.lua
 -- ====================================
+-- This module handles Delve-specific settings, such as disabling consumables.
 
 local addonName, ns = ...
 
@@ -10,6 +11,8 @@ end
 
 local DIFF_DELVE = 208
 
+-- Checks if the player is in a Delve instance.
+-- Skipped during combat.
 local function InInstanceDiff()
   if InCombatLockdown() then return false, 0 end
   local inInst = select(1, IsInInstance())
@@ -23,6 +26,7 @@ ns._delves_lastKey = ns._delves_lastKey or ""
 ns._delves_renderHooked = ns._delves_renderHooked or false
 ns._delves_origRenderAll = ns._delves_origRenderAll
 
+-- Checks if an Augment Rune ID is consumable.
 local function isConsumableAugmentRuneByID(id)
   local data = _G.ClickableRaidData and _G.ClickableRaidData.AUGMENT_RUNE
   if type(data) ~= "table" then return false end
@@ -32,6 +36,7 @@ local function isConsumableAugmentRuneByID(id)
   return false
 end
 
+-- Checks if a rune entry is consumable.
 local function isConsumableRuneEntry(entry, key)
   if type(entry) == "table" then
     if entry.consumable ~= nil then return entry.consumable and true or false end
@@ -44,6 +49,7 @@ local function isConsumableRuneEntry(entry, key)
   return false
 end
 
+-- Filters out consumable Augment Runes from a table.
 local function filterAugmentRunes(tbl)
   if type(tbl) ~= "table" then return {} end
   local isArray = tbl[1] ~= nil
@@ -62,6 +68,7 @@ local function filterAugmentRunes(tbl)
   end
 end
 
+-- Suppresses consumable items (food, flasks, etc.) from display.
 local function SuppressConsumables()
   _G.clickableRaidBuffCache = _G.clickableRaidBuffCache or {}
   _G.clickableRaidBuffCache.displayable = _G.clickableRaidBuffCache.displayable or {}
@@ -70,6 +77,7 @@ local function SuppressConsumables()
   d.AUGMENT_RUNE = filterAugmentRunes(d.AUGMENT_RUNE)
 end
 
+-- Checks if consumable suppression is active for Delves.
 function ns.Delves_DisableConsumablesActive()
   local inInst, difficultyID = InInstanceDiff()
   if not inInst then return false end
@@ -78,6 +86,7 @@ function ns.Delves_DisableConsumablesActive()
   return d.delvesDisableConsumables and true or false
 end
 
+-- Hooks RenderAll to apply Delve-specific logic.
 local function EnsureHookRenderAll()
   if ns._delves_renderHooked then return end
   if type(ns.RenderAll) ~= "function" then return end
@@ -91,6 +100,8 @@ local function EnsureHookRenderAll()
   ns._delves_renderHooked = true
 end
 
+-- Recomputes Delve state and updates display.
+-- Skipped during combat.
 local function recompute()
   if InCombatLockdown() then return end
   EnsureHookRenderAll()
@@ -114,6 +125,7 @@ local function recompute()
   end
 end
 
+-- Public API to recompute Delve state.
 function ns.Delves_Recompute()
   recompute()
 end

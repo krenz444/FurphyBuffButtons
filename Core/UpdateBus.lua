@@ -1,11 +1,13 @@
 -- ====================================
 -- \Core\UpdateBus.lua
 -- ====================================
+-- This file manages the central update loop for the addon, coordinating data refreshes and rendering.
 
 local addonName, ns = ...
 ns = ns or {}
 _G[addonName] = ns
 
+-- Flags to track what needs updating
 local _flags = {
   bagsDirty      = false,
   rosterDirty    = false,
@@ -21,6 +23,7 @@ local _renderPending = false
 local _renderDelay   = 0.05
 local _updateDelay   = 0.02
 
+-- Functions to mark specific components as dirty
 function ns.MarkBagsDirty(bagID)
   _flags.bagsDirty = true
   if type(bagID) == "number" then _dirtyBags[bagID] = true end
@@ -33,6 +36,7 @@ function ns.MarkAurasDirty(unit)
   if unit and type(unit)=="string" then _aurasDirty[unit] = true end
 end
 
+-- Consumes the list of dirty bags and clears it.
 function ns.ConsumeDirtyBags(out)
   if not _flags.bagsDirty then return 0 end
   local n = 0
@@ -40,27 +44,34 @@ function ns.ConsumeDirtyBags(out)
   return n
 end
 
+-- Calls the render function immediately.
+-- Skipped during combat.
 local function _callRenderNow()
   if InCombatLockdown() then return end
   if type(ns._RenderAllInner) == "function" then ns._RenderAllInner(); return end
   if type(ns.RenderAll) == "function" then ns.RenderAll() end
 end
 
+-- Schedules a render update.
 function ns.PushRender()
   if _renderPending then return end
   _renderPending = true
   C_Timer.After(_renderDelay, function() _renderPending = false; _callRenderNow() end)
 end
 
+-- Hook RenderAll to use PushRender
 if type(ns.RenderAll) == "function" and type(ns._RenderAllInner) ~= "function" then
   ns._RenderAllInner = ns.RenderAll
   ns.RenderAll = function() return ns.PushRender() end
 end
 
+-- Requests a full rebuild of the addon's data.
 if type(ns.RequestRebuild) ~= "function" then
   function ns.RequestRebuild() ns.MarkOptionsDirty(); ns.PokeUpdateBus() end
 end
 
+-- Recomputes gating conditions (level, rested, instance).
+-- Skipped during combat.
 local function _recomputeGates()
   if InCombatLockdown() then return end
   if type(getPlayerLevel) == "function" then getPlayerLevel() end
@@ -79,6 +90,7 @@ local function _recomputeGates()
   end
 end
 
+-- Checks if consumables should be suppressed.
 local function _isConsumablesSuppressed()
   if type(ns.MPlus_DisableConsumablesActive) == "function" and ns.MPlus_DisableConsumablesActive() then
     return true
@@ -94,6 +106,7 @@ local function _isConsumablesSuppressed()
   return false
 end
 
+-- Applies consumable suppression if active.
 local function _applyConsumableSuppressionIfActive()
   if not _isConsumablesSuppressed() then return false end
   clickableRaidBuffCache = clickableRaidBuffCache or {}
@@ -103,6 +116,8 @@ local function _applyConsumableSuppressionIfActive()
   return true
 end
 
+-- The main update function that processes dirty flags.
+-- Skipped during combat or encounters.
 local function _runOnce()
   if ns and (ns._inCombat or (IsEncounterInProgress and IsEncounterInProgress()) or (UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")) or InCombatLockdown()) then
     _updateArmed = false
@@ -159,12 +174,14 @@ local function _runOnce()
   end
 end
 
+-- Triggers the update loop.
 function ns.PokeUpdateBus()
   if _updateArmed then return end
   _updateArmed = true
   C_Timer.After(_updateDelay, _runOnce)
 end
 
+-- Ensures RenderAll uses PushRender
 do
   if not ns._render_wrapped and type(ns.PushRender) == "function" and type(ns.RenderAll) == "function" then
     local _orig = ns.RenderAll

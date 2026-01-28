@@ -1,11 +1,13 @@
 -- ====================================
 -- \Core\Base.lua
 -- ====================================
+-- This file initializes the core addon namespace, database, and basic utility functions.
 
 local addonName, ns = ...
 ns = ns or {}
-_G[addonName] = ns
+_G[addonName] = ns -- Expose namespace globally
 
+-- Initialize global database tables if they don't exist
 ClickableRaidBuffsDB   = ClickableRaidBuffsDB   or {}
 ClickableRaidData      = ClickableRaidData      or {}
 clickableRaidBuffCache = clickableRaidBuffCache or {}
@@ -14,23 +16,28 @@ clickableRaidBuffCache.playerInfo                  = clickableRaidBuffCache.play
 clickableRaidBuffCache.functions                   = clickableRaidBuffCache.functions                   or {}
 clickableRaidBuffCache.functions.bagsPendingScan   = clickableRaidBuffCache.functions.bagsPendingScan   or {}
 
+-- Constants
 ns.CORNER_TEXT_FIELD = "qty"
 ns.BASE_ICON_SIZE    = ns.BASE_ICON_SIZE or 50
 
+-- Returns the main database table
 function ns.GetDB()
   return ClickableRaidBuffsDB
 end
 
+-- Creates a shallow copy of an item data table
 function ns.copyItemData(data)
   local copy = {}
   for k, v in pairs(data) do copy[k] = v end
   return copy
 end
 
+-- Wrapper for C_Item.GetItemCount to get item quantity
 function getQuantity(itemID)
   return C_Item.GetItemCount(itemID, false, false, false, false)
 end
 
+-- Recursively copies a table
 local function copyTable(t)
   if type(t) ~= "table" then return t end
   local o = {}
@@ -40,6 +47,7 @@ local function copyTable(t)
   return o
 end
 
+-- Applies default values to the database
 local function applyDefaults(db, defaults)
   if type(defaults) ~= "table" then return end
   for k, v in pairs(defaults) do
@@ -49,6 +57,7 @@ local function applyDefaults(db, defaults)
   end
 end
 
+-- Ensures a color table has r, g, b, a values
 local function ensureColor(db, key)
   local c = db[key]
   if type(c) ~= "table" then
@@ -61,6 +70,7 @@ local function ensureColor(db, key)
   c.a = tonumber(c.a) or 1
 end
 
+-- Derives missing database values from defaults or other settings
 local function deriveMissing(db, D)
   if db.timerSize      == nil then db.timerSize      = db.bottomSize or (D and D.bottomSize) end
   if db.timerOutline   == nil then
@@ -89,6 +99,7 @@ local function deriveMissing(db, D)
   ensureColor(db, "cornerTextColor")
 end
 
+-- Frame to handle addon loading and initialization
 local loader = CreateFrame("Frame")
 loader:RegisterEvent("ADDON_LOADED")
 loader:SetScript("OnEvent", function(_, _, name)

@@ -1,6 +1,8 @@
 -- ====================================
 -- \Core\BagScan.lua
 -- ====================================
+-- This file handles scanning the player's bags for consumables (food, flasks, weapon enchants)
+-- and updating the displayable list based on what is found and current buffs.
 
 local addonName, ns = ...
 clickableRaidBuffCache = clickableRaidBuffCache or {}
@@ -8,20 +10,24 @@ clickableRaidBuffCache.playerInfo = clickableRaidBuffCache.playerInfo or {}
 clickableRaidBuffCache.displayable = clickableRaidBuffCache.displayable or {}
 clickableRaidBuffCache.functions   = clickableRaidBuffCache.functions   or {}
 
+-- Helper to get the database
 local function DB() return (ns.GetDB and ns.GetDB()) or _G.ClickableRaidBuffsDB or {} end
 
+-- Retrieves the list of spell IDs that count as "Well Fed".
 local function GetWellFedIDs()
   local wf = ClickableRaidData and ClickableRaidData["WELLFED"]
   if type(wf) == "table" and #wf > 0 then return wf end
   return nil
 end
 
+-- Checks if the player has a "Well Fed" buff and returns its expiration time.
 local function GetWellFedExpire()
   local wfIDs = GetWellFedIDs()
   if not wfIDs then return nil end
   return ns.GetPlayerBuffExpire and ns.GetPlayerBuffExpire(wfIDs, true, false) or nil
 end
 
+-- Checks if a weapon slot has a temporary enchant and returns its expiration time.
 local function GetSlotExpire(hand)
   local hasMH, mhMs, _, _, hasOH, ohMs = GetWeaponEnchantInfo()
   local now = GetTime()
@@ -33,6 +39,7 @@ local function GetSlotExpire(hand)
   return nil
 end
 
+-- Checks if consumables should be suppressed (e.g., in Mythic+).
 local function ConsumablesSuppressed()
   if ns.MPlus_DisableConsumablesActive and ns.MPlus_DisableConsumablesActive() then return true end
   local inInst = select(1, IsInInstance())
@@ -46,6 +53,7 @@ local function ConsumablesSuppressed()
   return false
 end
 
+-- Object pooling for table reuse to reduce garbage collection.
 local pools = { FOOD={}, FLASK={}, MAIN_HAND={}, OFF_HAND={} }
 
 local function Acquire(cat, data)
@@ -66,6 +74,7 @@ local function Release(cat, entry)
   local p = pools[cat]; if p then p[#p+1] = entry end
 end
 
+-- Updates cooldown information for an item entry.
 local function applyItemCooldownFields(entry, itemID)
   local start, duration, enable = GetItemCooldown(itemID)
   if enable == 1 and duration and duration > 1.5 and start and start > 0 then
@@ -75,11 +84,13 @@ local function applyItemCooldownFields(entry, itemID)
   end
 end
 
+-- Calculates the effective threshold for showing an item based on settings.
 local function EffectiveItemThresholdSecs()
   local baseMin = DB().itemThreshold or 15
   return (ns.MPlus_GetEffectiveThresholdSecs and ns.MPlus_GetEffectiveThresholdSecs("item", baseMin)) or (baseMin * 60)
 end
 
+-- Determines if an item should be shown based on its expiration time and threshold.
 local function applyThreshold(entry, expireAbs, thresholdSecs)
   local threshold = thresholdSecs or EffectiveItemThresholdSecs()
   entry.expireTime = expireAbs
@@ -90,10 +101,12 @@ local function applyThreshold(entry, expireAbs, thresholdSecs)
   entry.showAt = nil; return true
 end
 
+-- Checks if an item passes gating requirements (level, instance, rested).
 local function passesGates(data, playerLevel, inInstance, rested)
   return ns.PassesGates(data, playerLevel, inInstance, rested)
 end
 
+-- Updates or inserts a food or flask entry into the displayable list.
 local function UpsertFoodOrFlask(cat, itemID, data, qty, wellFedExpire, flaskExpire, playerLevel, inInstance, rested)
   if ns.IsExcluded and ns.IsExcluded(itemID) then
     local map = clickableRaidBuffCache.displayable[cat]
@@ -120,6 +133,7 @@ local function UpsertFoodOrFlask(cat, itemID, data, qty, wellFedExpire, flaskExp
   end
 end
 
+-- Updates or inserts a weapon enchant entry into the displayable list.
 local function UpsertWeaponEnchant(cat, itemID, data, hand, qty, playerLevel, inInstance, rested)
   local handType, enchantable = ns.WeaponEnchants_EquippedHandTypeAndEnchantable(hand)
   if not enchantable then
@@ -167,6 +181,7 @@ local function UpsertWeaponEnchant(cat, itemID, data, hand, qty, playerLevel, in
 end
 
 local _enchantNextAt
+-- Schedules a check for when weapon enchants will expire.
 function ScheduleEnchantThresholdCheck()
   local now = GetTime()
 
@@ -210,6 +225,7 @@ function ScheduleEnchantThresholdCheck()
   end
 end
 
+-- Re-evaluates thresholds for all bag items (food, flasks, enchants).
 function ns.ReapplyBagThresholds()
   local pi   = clickableRaidBuffCache.playerInfo or {}
   local wf   = GetWellFedExpire()
@@ -237,6 +253,8 @@ function ns.ReapplyBagThresholds()
   ScheduleEnchantThresholdCheck()
 end
 
+-- Scans all bags for relevant items and updates the displayable list.
+-- Skipped during combat.
 function scanAllBags()
   if InCombatLockdown() then return end
 
@@ -314,11 +332,13 @@ function scanAllBags()
   ScheduleEnchantThresholdCheck()
 end
 
+-- Marks a bag as dirty to be rescanned.
 function markBagsForScan(bagID)
   if ns.MarkBagsDirty then ns.MarkBagsDirty(bagID) end
   if ns.PokeUpdateBus then ns.PokeUpdateBus() end
 end
 
+-- Processes pending bag scans.
 function processPendingBags()
   scanAllBags()
 end

@@ -1,6 +1,7 @@
 -- ====================================
 -- \Modules\Flask.lua
 -- ====================================
+-- This module handles the tracking and display of Flasks and Phials.
 
 local addonName, ns = ...
 
@@ -11,6 +12,7 @@ clickableRaidBuffCache.displayable = clickableRaidBuffCache.displayable or {}
 local FALLBACK = { 432473, 432021, 431974, 431973, 431972, 431971 }
 local FLASK_IDS, FLEETING_BY_BUFFID
 
+-- Builds the set of flask IDs to track.
 local function BuildSetsOnce()
   if FLASK_IDS then return end
   FLASK_IDS, FLEETING_BY_BUFFID = {}, {}
@@ -38,6 +40,8 @@ local function BuildSetsOnce()
   end
 end
 
+-- Checks if the player has an active flask and returns its expiration time.
+-- Skipped during combat.
 local function GetFlaskExpire()
   if InCombatLockdown() then return nil end
   BuildSetsOnce()
@@ -45,6 +49,8 @@ local function GetFlaskExpire()
   return ns.GetPlayerBuffExpire(FLASK_IDS, false, false)
 end
 
+-- Checks if the active flask is a "fleeting" type (e.g., Alchemical Flavor Pocket).
+-- Skipped during combat.
 local function IsActiveFlaskFleeting()
   if InCombatLockdown() then return false end
   BuildSetsOnce()
@@ -58,6 +64,8 @@ local function IsActiveFlaskFleeting()
   return false
 end
 
+-- Updates the cached flask state and triggers a refresh if needed.
+-- Skipped during combat.
 local function UpdateFlaskState()
   if InCombatLockdown() then return end
   local pi = clickableRaidBuffCache.playerInfo
@@ -72,6 +80,8 @@ local function UpdateFlaskState()
   if ns.StartTimerUpdater then ns.StartTimerUpdater() end
 end
 
+-- Filters out non-fleeting flasks if a fleeting flask is active.
+-- Skipped during combat.
 local function ApplyFleetingGate()
   if InCombatLockdown() then return end
   local disp = clickableRaidBuffCache.displayable
@@ -87,6 +97,7 @@ local function ApplyFleetingGate()
   end
 end
 
+-- Hooks RenderAll to apply fleeting flask logic.
 do
   local wrapped
   local function EnsureHook()
@@ -105,12 +116,14 @@ do
   C_Timer.After(0.5,  EnsureHook)
 end
 
+-- Public API to update flask state.
 function ns.UpdateFlaskState()
   if type(UpdateFlaskState) == "function" then
     UpdateFlaskState()
   end
 end
 
+-- Event handler for UNIT_AURA.
 function ns.Flask_OnUnitAura(unit, updateInfo)
   if unit ~= "player" then return end
   if type(UpdateFlaskState) == "function" then

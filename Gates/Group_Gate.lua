@@ -1,6 +1,7 @@
 -- ====================================
 -- \Gates\Group_Gate.lua
 -- ====================================
+-- Gate that only allows icons to display when the player is in a group or raid.
 
 local addonName, ns = ...
 

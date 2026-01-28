@@ -1,6 +1,7 @@
 -- ====================================
 -- \Modules\Pets.lua
 -- ====================================
+-- This module handles the display of pet-related actions for Hunters (Call Pet, Revive Pet).
 
 local addonName, ns = ...
 clickableRaidBuffCache = clickableRaidBuffCache or {}
@@ -14,21 +15,26 @@ local function InCombat() return InCombatLockdown() end
 local function DB() return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or {} end
 local function HPDB() local d = DB(); d.hunterPets = d.hunterPets or {}; return d.hunterPets end
 
+-- Checks if a spell is known by the player.
 local function KnowSpell(id)
   if not id then return false end
   if IsPlayerSpell then return IsPlayerSpell(id) end
   return IsSpellKnown and IsSpellKnown(id) or false
 end
 
+-- Ensures the display category for pets exists.
 local function ensureDisplayCat(cat)
   clickableRaidBuffCache.displayable[cat] = clickableRaidBuffCache.displayable[cat] or {}
   return clickableRaidBuffCache.displayable[cat]
 end
 
+-- Clears the pet display category.
 local function clearDisplayCat(cat)
   if clickableRaidBuffCache.displayable[cat] then wipe(clickableRaidBuffCache.displayable[cat]) end
 end
 
+-- Checks if the player has a usable pet active.
+-- Assumes true in combat to avoid hiding buttons erroneously.
 local function HasUsablePet()
   if InCombat() then return true end -- Assume true in combat to avoid hiding if checks fail
   if not UnitExists("pet") then return false end
@@ -37,12 +43,15 @@ local function HasUsablePet()
   return true
 end
 
+-- Retrieves the player's class ID.
+-- Returns cached value during combat.
 local function PlayerClassID()
   if InCombat() then return clickableRaidBuffCache.playerInfo and clickableRaidBuffCache.playerInfo.playerClassId end
   return (clickableRaidBuffCache.playerInfo and clickableRaidBuffCache.playerInfo.playerClassId)
          or (type(getPlayerClass)=="function" and getPlayerClass())
 end
 
+-- Mapping of Call Pet spell IDs to stable slot indices.
 local CALLPET_NATURAL_SLOT = {
   [883]   = 1,
   [83242] = 2,
@@ -52,6 +61,7 @@ local CALLPET_NATURAL_SLOT = {
 }
 local function callpetNaturalSlotForSpell(sid) return CALLPET_NATURAL_SLOT[sid] end
 
+-- Checks if a stable slot has a pet assigned.
 local function hunterSlotHasPet(slotIndex)
   if not slotIndex then return false end
   local info = C_StableInfo and C_StableInfo.GetStablePetInfo and C_StableInfo.GetStablePetInfo(slotIndex)
@@ -61,6 +71,7 @@ local function hunterSlotHasPet(slotIndex)
   return (n and n ~= "") or (cid and cid ~= 0)
 end
 
+-- Returns the atlas texture for a hunter pet spec.
 local function atlasForHunterSpec(specID)
   local hp = HPDB()
   if hp.displayTalentsSymbol == false then return nil end
@@ -70,6 +81,7 @@ local function atlasForHunterSpec(specID)
   return nil
 end
 
+-- Returns the ability icon for a hunter pet spec.
 local function abilityIconForSpec(specID)
   if specID == 79 then return 348567 end
   if specID == 74 then return 136224 end
@@ -77,6 +89,7 @@ local function abilityIconForSpec(specID)
   return nil
 end
 
+-- Updates cooldown information for a spell entry.
 local function applySpellCooldownFields(entry, spellID)
   local info = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(spellID)
   local start = info and info.startTime or 0
@@ -91,11 +104,13 @@ local function applySpellCooldownFields(entry, spellID)
   end
 end
 
+-- Checks if a pet spell is excluded by user settings.
 local function IsExcludedPets(id)
   if type(ns.IsExcluded) == "function" then return ns.IsExcluded(id, "PETS") end
   return false
 end
 
+-- Checks if the player is a Marksmanship Hunter without the Unbreakable Bond talent.
 local function IsMMWithoutUnbreakableBond()
   if PlayerClassID() ~= HUNTER_CLASSID then return false end
   if not GetSpecialization or not GetSpecializationInfo then return false end
@@ -106,6 +121,8 @@ local function IsMMWithoutUnbreakableBond()
   return KnowSpell(HUNTER_DISABLE_PETS_SPELL)
 end
 
+-- Rebuilds the list of pet actions to display.
+-- Skipped during combat.
 local function buildPets()
   if InCombat() then return end
 
@@ -228,10 +245,7 @@ local function buildPets()
   end
 end
 
-
-
-
-
+-- Public API to rebuild pet display.
 function ns.Pets_Rebuild()
   if InCombat() then return end
   buildPets()
@@ -239,6 +253,7 @@ function ns.Pets_Rebuild()
   if ns.RenderAll then ns.RenderAll() end
 end
 
+-- Event handlers
 function ns.Pets_OnPEW() ns.Pets_Rebuild(); return true end
 function ns.Pets_OnSpellsChanged() ns.Pets_Rebuild(); return true end
 function ns.Pets_OnPetStableUpdate() ns.Pets_Rebuild(); return true end

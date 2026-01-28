@@ -1,19 +1,23 @@
 -- ====================================
 -- \Core\Mover.lua
 -- ====================================
+-- This file handles the positioning and movement of the main addon frame.
 
 local addonName, ns = ...
 
+-- Retrieves the saved position from the database.
 local function GetPos()
     ClickableRaidBuffsDB = ClickableRaidBuffsDB or {}
     ClickableRaidBuffsDB.position = ClickableRaidBuffsDB.position or { x = 0, y = 0 }
     return ClickableRaidBuffsDB.position
 end
 
+-- Create the main parent frame for rendering icons.
 local parent = CreateFrame("Frame", addonName .. "RenderParent", UIParent)
 parent:SetFrameStrata("MEDIUM")
 do
     local pos = GetPos()
+    -- Defer positioning if in combat to avoid taint.
     if InCombatLockdown() or ns._combat_suspended then
         ns._pendingPos = { x = pos.x or 0, y = pos.y or 0 }
     else
@@ -25,6 +29,7 @@ parent:SetClampedToScreen(true)
 parent:EnableMouse(false)
 ns.RenderParent = parent
 
+-- Create an overlay frame (usage context unclear, possibly for blocking clicks or visual effects).
 local overlay = CreateFrame("Frame", addonName .. "Overlay", UIParent, "BackdropTemplate")
 overlay:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8" })
 overlay:SetBackdropColor(0,0,0,0)
@@ -32,11 +37,14 @@ overlay:SetFrameStrata("BACKGROUND")
 overlay:Hide()
 ns.Overlay = overlay
 
+-- Create a hover frame (usage context unclear).
 local hover = CreateFrame("Frame", addonName .. "OverlayHover", UIParent)
 hover:SetFrameStrata("BACKGROUND")
 hover:Hide()
 ns.Hover = hover
 
+-- Applies the saved position to the parent frame.
+-- Skipped during combat.
 local function ApplyPosition()
     local pos = GetPos()
     if InCombatLockdown() or ns._combat_suspended then
@@ -51,6 +59,7 @@ local function ApplyPosition()
     end
 end
 
+-- Teleports the mover frame to specific coordinates.
 local function TeleportMover(x, y)
     local pos = GetPos()
     pos.x, pos.y = x or 0, y or 0
@@ -58,6 +67,7 @@ local function TeleportMover(x, y)
 end
 ns.TeleportMover = TeleportMover
 
+-- Nudges the mover frame by a delta.
 local function NudgeMover(dx, dy)
     local pos = GetPos()
     pos.x, pos.y = (pos.x or 0) + dx, (pos.y or 0) + dy
@@ -65,6 +75,7 @@ local function NudgeMover(dx, dy)
 end
 ns.NudgeMover = NudgeMover
 
+-- Updates the size of the mover frame to match the parent frame plus padding.
 local function UpdateMoverSize()
     if not ns._mover or not parent then return end
     local w, h = parent:GetSize()
@@ -74,6 +85,8 @@ local function UpdateMoverSize()
 end
 ns.UpdateMoverSize = UpdateMoverSize
 
+-- Safely triggers a render update.
+-- Skipped during combat.
 local function SafeRenderAll()
     if not ns.RenderAll then return end
     if InCombatLockdown() or ns._combat_suspended then
@@ -83,6 +96,8 @@ local function SafeRenderAll()
     ns.RenderAll()
 end
 
+-- Toggles the visibility of the mover frame (unlock/lock).
+-- Skipped during combat.
 function ns.ToggleMover(show)
     if InCombatLockdown() or ns._combat_suspended then
         ns._pendingToggleMover = show and true or false
@@ -91,6 +106,7 @@ function ns.ToggleMover(show)
 
     if show then
         if not ns._mover then
+            -- Create the mover frame if it doesn't exist
             local mover = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
             ns._mover = mover
             mover:SetFrameStrata("DIALOG")
@@ -105,6 +121,7 @@ function ns.ToggleMover(show)
             mover:SetClampedToScreen(true)
             mover:SetPoint("CENTER", parent, "CENTER", 0, 0)
 
+            -- Dragging logic
             mover:SetScript("OnMouseDown", function(self, button)
                 if button == "LeftButton" then
                     self.isDragging = true
@@ -151,6 +168,7 @@ function ns.ToggleMover(show)
                 b:SetHeight(20)
             end
 
+            -- Helper to create text buttons on the mover frame
             local function makeTextButton(prev, label, onClick)
                 local b = CreateFrame("Button", nil, mover, "BackdropTemplate")
                 b:SetHeight(20)
@@ -197,6 +215,7 @@ function ns.ToggleMover(show)
                 TeleportMover(pos.x or 0, 0)
             end)
 
+            -- Helper to create arrow buttons for nudging
             local function makeArrow(prev, dx, dy, angle)
                 local b = CreateFrame("Button", nil, mover)
                 b:SetSize(20, 20)
@@ -269,6 +288,7 @@ end
 
 parent:HookScript("OnSizeChanged", function() ns.UpdateMoverSize() end)
 
+-- Debugging tools
 function CRB_AddDBToDevTool()
     if not DevTool then
         print("|cffff0000DevTool not loaded.|r")
@@ -291,6 +311,7 @@ local function ReapplyPosition()
     ApplyPosition()
 end
 
+-- Event handler for position updates
 local ev = CreateFrame("Frame")
 ev:RegisterEvent("PLAYER_ENTERING_WORLD")
 ev:RegisterEvent("ZONE_CHANGED_NEW_AREA")

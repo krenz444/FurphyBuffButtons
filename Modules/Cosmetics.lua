@@ -1,12 +1,14 @@
 -- ====================================
 -- \Modules\Cosmetics.lua
 -- ====================================
+-- This module handles the tracking and display of cosmetic items (toys, etc.).
 
 local addonName, ns = ...
 
 local function DB() return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or {} end
 local function GetCosmeticSet() local d=DB(); d.cosmetics=d.cosmetics or {}; return d.cosmetics end
 
+-- Checks if an item is excluded by user settings.
 local function IsExcluded(id)
   local d = DB()
   d.exclusions = d.exclusions or {}
@@ -14,6 +16,7 @@ local function IsExcluded(id)
   return (d.exclusions[id] or d.raidBuffExclusions[id]) and true or false
 end
 
+-- Seeds default exclusions for cosmetic items on first load.
 local function SeedDefaultCosmeticExclusions()
   local d = DB()
   d.exclusions = d.exclusions or {}
@@ -29,6 +32,7 @@ local function SeedDefaultCosmeticExclusions()
 end
 
 local _active = nil
+-- Rebuilds the set of active cosmetic items based on user settings.
 function ns.Cosmetics_RebuildActive()
   _active = nil
   local enabled = GetCosmeticSet()
@@ -40,6 +44,7 @@ function ns.Cosmetics_RebuildActive()
   end
 end
 
+-- Initialize on login.
 local _login = CreateFrame("Frame")
 _login:RegisterEvent("PLAYER_LOGIN")
 _login:SetScript("OnEvent", function()
@@ -51,11 +56,13 @@ clickableRaidBuffCache = clickableRaidBuffCache or {}
 clickableRaidBuffCache.playerInfo = clickableRaidBuffCache.playerInfo or {}
 clickableRaidBuffCache.displayable = clickableRaidBuffCache.displayable or {}
 
+-- Ensures the display category for cosmetics exists.
 local function ensureCategory()
   clickableRaidBuffCache.displayable["COSMETIC"] = clickableRaidBuffCache.displayable["COSMETIC"] or {}
   return clickableRaidBuffCache.displayable["COSMETIC"]
 end
 
+-- Updates cooldown information for an item entry.
 local function applyItemCooldownFields(entry, itemID)
   local start, duration, enable = GetItemCooldown(itemID)
   if enable == 1 and duration and duration > 1.5 and start and start > 0 then
@@ -67,6 +74,7 @@ local function applyItemCooldownFields(entry, itemID)
   end
 end
 
+-- Checks expiration time for a cosmetic buff.
 local function cosmeticExpireFor(data)
   if type(data) ~= "table" then return nil end
   local ids = data.buffID
@@ -79,6 +87,7 @@ local function cosmeticExpireFor(data)
   return nil
 end
 
+-- Determines if an item should be shown based on its expiration time and threshold.
 local function applyThreshold(entry, expireAbs, thresholdMin)
   local threshold = (thresholdMin or (DB().itemThreshold or 15)) * 60
   entry.expireTime = expireAbs
@@ -88,6 +97,8 @@ local function applyThreshold(entry, expireAbs, thresholdMin)
   if GetTime() < showAt then entry.showAt = showAt; return false else entry.showAt = nil; return true end
 end
 
+-- Gathers environment data for gate checking.
+-- Skipped during combat.
 local function envForGates()
   if InCombatLockdown() then return 0, false, false end
   local pi = clickableRaidBuffCache.playerInfo or {}
@@ -97,12 +108,15 @@ local function envForGates()
   return lvl, inInst, rested
 end
 
+-- Checks if an item passes gating requirements.
 local function passesGates(data)
   if not ns or not ns.PassesGates then return true end
   local lvl, inInst, rested = envForGates()
   return ns.PassesGates(data, lvl, inInst, rested)
 end
 
+-- Scans a specific bag for cosmetic items.
+-- Skipped during combat.
 local function scanBagsCosmetics(bagID)
   if InCombatLockdown() then return end
   local dataTbl = _G.ClickableRaidData and _G.ClickableRaidData["COSMETIC"]
@@ -145,6 +159,8 @@ local function scanBagsCosmetics(bagID)
   end
 end
 
+-- Scans all bags for cosmetic items.
+-- Skipped during combat.
 local function scanCosmeticsAllBags()
   if InCombatLockdown() then return end
   local dataTbl = _G.ClickableRaidData and _G.ClickableRaidData["COSMETIC"]
@@ -155,6 +171,7 @@ local function scanCosmeticsAllBags()
   end
 end
 
+-- Hooks scanAllBags to include cosmetics.
 do
   if type(_G.scanAllBags) == "function" and not ns._cosmetics_wrapped then
     local orig = _G.scanAllBags
@@ -167,6 +184,7 @@ do
   end
 end
 
+-- Removes disabled or excluded items from the render list.
 local function pruneRenderedDisabled()
   if not ns.RenderFrames then return end
   for i = #ns.RenderFrames, 1, -1 do
@@ -192,6 +210,7 @@ local function pruneRenderedDisabled()
 end
 
 local _pending
+-- Triggers a refresh of cosmetic items.
 function ns.Cosmetics_RefreshNow()
   if _pending then return end
   _pending = true
@@ -207,6 +226,8 @@ function ns.Cosmetics_RefreshNow()
   end)
 end
 
+-- Recomputes timers for cosmetic items.
+-- Skipped during combat.
 local function recalcCosmeticTimers()
   if InCombatLockdown() then return end
   local cat = ensureCategory()
@@ -224,6 +245,8 @@ local function recalcCosmeticTimers()
   end
 end
 
+-- Handles UNIT_AURA events for cosmetics.
+-- Skipped during combat.
 function ns.Cosmetics_OnPlayerAura(unit, updateInfo)
   if unit ~= "player" then return end
   if InCombatLockdown() or (IsEncounterInProgress and IsEncounterInProgress()) or (UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")) then return end

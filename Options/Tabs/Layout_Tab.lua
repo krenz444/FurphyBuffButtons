@@ -1,6 +1,8 @@
 -- ====================================
 -- \Options\Tabs\Layout_Tab.lua
 -- ====================================
+-- This file creates the "Layout" tab in the options panel, allowing users to configure
+-- the visual layout, ordering, and appearance of the addon's icons.
 
 local addonName, ns = ...
 ns.Options        = ns.Options        or {}
@@ -19,6 +21,7 @@ local SCROLLBAR_INSET_PAD  = 5
 
 local function DB() return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or {} end
 
+-- Syncs center text color keys if they differ.
 local function SyncCenterColorKeys()
   local d = DB(); if type(d) ~= "table" then return end
   local src = d.timerTextColor or d.centerTextColor
@@ -28,6 +31,7 @@ local function SyncCenterColorKeys()
   d.centerTextColor = { r=r, g=g, b=b, a=a }
 end
 
+-- Applies all font settings from the database.
 local function ApplyAllFonts()
   local d = DB()
   local top    = d.topSize    or (O.GetDefault and O.GetDefault("topSize"))
@@ -44,16 +48,19 @@ local function ApplyAllFonts()
   if ns.RefreshFonts    then ns.RefreshFonts() end
 end
 
+-- Applies glow settings from the database.
 local function ApplyGlowFromDB()
   if ns.RefreshGlow then ns.RefreshGlow()
   elseif ns.RenderAll then ns.RenderAll() end
 end
 
+-- Applies text colors.
 local function ApplyTextColors()
   if ns.RefreshFonts then ns.RefreshFonts()
   elseif ns.RenderAll then ns.RenderAll() end
 end
 
+-- Applies all fonts while preserving the center text color.
 local function ApplyAllFontsPreservingCenterColor()
   local d = DB()
   local c = d.centerTextColor or d.timerTextColor
@@ -80,6 +87,7 @@ if not StaticPopupDialogs[POPUP_KEY] then
     timeout = 0, whileDead = 1, hideOnEscape = 1, preferredIndex = 3,
   }
 end
+-- Shows a confirmation popup for resetting appearance settings.
 local function ConfirmReset(run, what)
   if O and O.ConfirmReset then return O.ConfirmReset(run, what) end
   local msg = "Reset "..(what or "setting").." to default?"
@@ -89,6 +97,7 @@ end
 local GLOW_CHECKBOX_YOFFSET = (O and O.GLOW_CHECKBOX_YOFFSET) or -8
 local ROW_H_TOP = 90
 
+-- Hides the default page header to allow custom layout.
 local function HidePageHeader(content)
   local page = content and content.GetParent and content:GetParent()
   if not page then return end
@@ -150,6 +159,7 @@ local function _order_groupText(gid)
   return table.concat(ex, " + ")
 end
 
+-- Builds the "Icon Order" section with drag-and-drop functionality.
 local function BuildOrderSection(content, Row)
   local K = ORDER_KNOBS
 

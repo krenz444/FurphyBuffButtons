@@ -1,6 +1,7 @@
 -- ====================================
 -- \UI\Cooldown.lua
 -- ====================================
+-- This file manages the visual representation of cooldowns on buttons.
 
 local addonName, ns = ...
 ns = ns or {}
@@ -8,12 +9,14 @@ _G[addonName] = ns
 
 local function nowPrecise() return GetTimePreciseSec() end
 
+-- Calculates font size based on button size.
 local function scaledFont(btn, base)
   local db = ns.GetDB()
   local w = (btn and btn:GetWidth()) or (db and db.iconSize) or 50
   return math.floor((base or 14) * (w / 50))
 end
 
+-- Formats time for item cooldowns.
 local function fmt_center_item(seconds)
   local r = math.max(0, seconds)
   if r >= 60 then
@@ -25,10 +28,12 @@ local function fmt_center_item(seconds)
   end
 end
 
+-- Formats time for eating duration.
 local function fmt_center_eating(seconds)
   return tostring(math.max(0, math.ceil(seconds)))
 end
 
+-- Ensures a cooldown frame exists for the button.
 local function ensureCooldown(btn)
   if btn.cooldown then return btn.cooldown end
   local cd = CreateFrame("Cooldown", nil, btn, "CooldownFrameTemplate")
@@ -48,10 +53,12 @@ local function ensureCooldown(btn)
   return cd
 end
 
+-- Sets visual properties for the cooldown swipe.
 local function setSwipeVisuals(cd)
   if cd.SetSwipeColor then cd:SetSwipeColor(1, 1, 1, 0.7) end
 end
 
+-- Desaturates the button icon (greyscale).
 local function desaturateOn(btn)
   if btn.icon then
     btn.icon:SetDesaturated(true)
@@ -59,6 +66,7 @@ local function desaturateOn(btn)
   end
 end
 
+-- Restores the button icon color.
 local function desaturateOff(btn)
   if btn.icon then
     btn.icon:SetDesaturated(false)
@@ -66,6 +74,7 @@ local function desaturateOff(btn)
   end
 end
 
+-- Updates the center text of the button.
 local function setCenter(btn, text)
   if not (btn and btn.centerText) then return end
   local fs = btn.centerText
@@ -81,6 +90,7 @@ local function setCenter(btn, text)
   )
 end
 
+-- Applies a cooldown visual to a button based on an item entry.
 function ns.ApplyItemCooldown(btn, entry)
   if not (btn and entry) then return end
   local start   = entry.cooldownStart
@@ -105,6 +115,7 @@ function ns.ApplyItemCooldown(btn, entry)
   end
 end
 
+-- Clears the cooldown visual from a button.
 function ns.ClearCooldownVisual(btn)
   if not btn then return end
 
@@ -140,6 +151,7 @@ function ns.ClearCooldownVisual(btn)
   end
 end
 
+-- Updates the cooldown timer text on each tick.
 function ns.CooldownTick(btn)
   if not (btn and btn._crb_cd_start and btn._crb_cd_dur) then return end
   local endAt = btn._crb_cd_start + btn._crb_cd_dur
@@ -175,6 +187,7 @@ function ns.CooldownTick(btn)
   end
 end
 
+-- Refreshes cooldown info for an item button.
 function ns.RefreshCooldownForButton(btn)
   if not (btn and btn._crb_entry) then return end
   local e = btn._crb_entry
@@ -190,6 +203,7 @@ function ns.RefreshCooldownForButton(btn)
   end
 end
 
+-- Refreshes cooldown info for a spell button.
 function ns.RefreshSpellCooldownForButton(btn)
   if not (btn and btn._crb_entry) then return end
   local e = btn._crb_entry
@@ -208,6 +222,7 @@ function ns.RefreshSpellCooldownForButton(btn)
   end
 end
 
+-- Refreshes cooldowns for all active buttons.
 function ns.Cooldown_RefreshAll()
   local frames = ns.RenderFrames
   if not frames then return end
@@ -235,6 +250,7 @@ function ns.Cooldown_RefreshAll()
   end
 end
 
+-- Hooks RefreshFonts to update center text.
 local function HookRefreshFonts()
   if ns._crb_rf_wrapped then return end
   if type(ns.RefreshFonts) == "function" then

@@ -1,6 +1,10 @@
 -- ====================================
 -- \UI\Render.lua
 -- ====================================
+-- This file handles the core rendering system for all addon icons.
+-- Manages icon layout (horizontal/vertical/grid), positioning, textures,
+-- cooldowns, glows, and all visual elements. Uses LibCustomGlow for effects.
+-- Coordinates with Core/UpdateBus for state changes and UI/VisualCore for frame creation.
 
 local addonName, ns = ...
 local parent, overlay, hover = ns.RenderParent, ns.Overlay, ns.Hover
@@ -13,6 +17,7 @@ ns.RenderIndexByKey = ns.RenderIndexByKey or {}
 _G.clickableRaidBuffCache = _G.clickableRaidBuffCache or {}
 local C = _G.clickableRaidBuffCache
 
+-- Configuration for rank overlays (e.g., quality tiers).
 C.rankOverlayKnobs = C.rankOverlayKnobs or {
   spec   = { scale = 0.52, x = 5,  y = -5, alpha = 1 },
   rank1  = { scale = 0.52, xMul = 0.05, yMul = -0.08, alpha = 1 },
@@ -22,6 +27,7 @@ C.rankOverlayKnobs = C.rankOverlayKnobs or {
   fleeting = { scale = 0.42, xMul = 0.1, yMul = -0.0, alpha = 0.8 },
 }
 
+-- Generates a unique key for an entry.
 local function entryKey(cat, entry)
   if cat == "MAIN_HAND" then
     return "MH:" .. tostring(entry.itemID or entry.name or "")
@@ -50,11 +56,13 @@ local function entryKey(cat, entry)
   return cat .. ":name:" .. tostring(entry.name or "")
 end
 
+-- Checks if two RGBA colors are the same.
 local function sameRGBA(a, b)
   if not a or not b then return false end
   return a[1]==b[1] and a[2]==b[2] and a[3]==b[3] and (a[4] or 1)==(b[4] or 1)
 end
 
+-- Enables or disables the glow effect on a button.
 local function ensureGlow(btn, shouldEnable, color, size)
   if not shouldEnable then
     if btn._crb_glow_enabled then
@@ -85,6 +93,7 @@ local function ensureGlow(btn, shouldEnable, color, size)
   end
 end
 
+-- Sets the icon texture if it has changed.
 local function setIconTextureIfChanged(btn, tex)
   if btn.icon._crb_tex ~= tex then
     btn.icon:SetTexture(tex or 134400)
@@ -92,6 +101,7 @@ local function setIconTextureIfChanged(btn, tex)
   end
 end
 
+-- Sets the button action (macro, item, spell) if it has changed.
 local function setButtonActionIfChanged(btn, actionType, value1)
   if btn._crb_action_type ~= actionType or btn._crb_action_v1 ~= value1 then
     if actionType == "macro" then
@@ -111,6 +121,7 @@ local function setButtonActionIfChanged(btn, actionType, value1)
   end
 end
 
+-- Calculates offsets for rank overlays.
 local function knobOffsets(ks, size, defX, defY)
   if not ks then return defX, defY end
   local x = ks.x
@@ -125,6 +136,7 @@ local function knobOffsets(ks, size, defX, defY)
 end
 
 local _raidBuffOrderMap
+-- Gets the sort order index for a raid buff spell.
 local function GetRaidBuffOrderIndex(spellID)
   if not _raidBuffOrderMap then
     _raidBuffOrderMap = {}
@@ -145,6 +157,7 @@ local function GetRaidBuffOrderIndex(spellID)
   return _raidBuffOrderMap[spellID] or 9999
 end
 
+-- Sorts items based on category priority and other criteria.
 local function SortItems(items, catPriority)
   table.sort(items, function(a, b)
     local ai = catPriority[a.category] or 999
@@ -187,6 +200,7 @@ local function SortItems(items, catPriority)
   end)
 end
 
+-- Hides all rendered icons.
 function ns.HideAllRenderedIcons()
   parent:SetSize(1, 1)
   ns.Overlay:Hide()
@@ -209,6 +223,7 @@ function ns.HideAllRenderedIcons()
   wipe(ns.RenderIndexByKey)
 end
 
+-- Clears icons during combat (if suspended).
 function ns.CombatClearIcons()
   if ns.RenderParent then
     ns.RenderParent:Hide()
@@ -216,6 +231,7 @@ function ns.CombatClearIcons()
   ns.HideAllRenderedIcons()
 end
 
+-- Restores icons after combat.
 function ns.CombatRestoreIcons()
   if ns.RenderParent then
     ns.RenderParent:Show()
@@ -225,7 +241,7 @@ function ns.CombatRestoreIcons()
   end
 end
 
-
+-- Handles combat suspension of rendering.
 local _combatFrame = CreateFrame("Frame")
 _combatFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 _combatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
@@ -239,6 +255,7 @@ _combatFrame:SetScript("OnEvent", function(_, event)
   end
 end)
 
+-- Resolves font path.
 local function ResolveFontPath(name)
   if ns.Options and ns.Options.GetFontPathByName then
     local p = ns.Options.GetFontPathByName(name)
@@ -248,6 +265,8 @@ local function ResolveFontPath(name)
   return fallback or "Fonts\\FRIZQT__.TTF"
 end
 
+-- Main render function.
+-- Skipped during combat.
 function ns.RenderAll()
   if ns._combat_suspended or ns.InCombatSuppressed then return end
   if InCombatLockdown() then return end
@@ -499,6 +518,10 @@ function ns.RenderAll()
   ns.Overlay:SetSize(parentW + pad, parentH + pad)
   ns.Hover:ClearAllPoints();   ns.Hover:SetPoint("CENTER", ns.RenderParent, "CENTER")
   ns.Hover:SetSize(parentW + pad, parentH + pad)
+
+  -- Local helper functions are redefined here (duplicates of lines 56-99) for performance
+  -- and scope isolation. These are called in tight loops during rendering, so local copies
+  -- avoid repeated namespace lookups and maintain clean function-level encapsulation.
 
   local function ResolveFontPath(name)
     if ns.Options and ns.Options.GetFontPathByName then

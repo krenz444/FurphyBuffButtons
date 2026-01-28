@@ -1,6 +1,8 @@
 -- ====================================
 -- \Gates\NoPet_Gate.lua
 -- ====================================
+-- Gates that check for pet presence. Provides "no_pet" (pet absent/dead/invisible)
+-- and "has_pet" (pet exists and is usable) gate conditions.
 
 local addonName, ns = ...
 

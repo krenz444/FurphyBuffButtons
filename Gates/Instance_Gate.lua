@@ -1,6 +1,7 @@
 -- ====================================
 -- \Gates\Instance_Gate.lua
 -- ====================================
+-- Gate that only passes when the player is inside an instance (dungeon/raid/scenario).
 
 local addonName, ns = ...
 

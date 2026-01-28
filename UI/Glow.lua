@@ -1,6 +1,7 @@
 -- ====================================
 -- \UI\Glow.lua
 -- ====================================
+-- This file handles the pixel glow effect on buttons using LibCustomGlow.
 
 local addonName, ns = ...
 local GlowLib = LibStub and LibStub("LibCustomGlow-1.0", true)
@@ -9,6 +10,7 @@ local function DB() return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or 
 local FALLBACK_SPECIAL = { r = 0.00, g = 0.9137, b = 1.00, a = 1 }
 local FALLBACK_GENERAL = { r = 0.95, g = 0.95,  b = 0.32, a = 1 }
 
+-- Ensures a color table has valid RGBA values.
 local function safeColor(tbl, fallback)
   if type(tbl) == "table" then
     return {
@@ -21,11 +23,13 @@ local function safeColor(tbl, fallback)
   return { r = fallback.r, g = fallback.g, b = fallback.b, a = fallback.a or 1 }
 end
 
+-- Checks if two RGBA colors are the same.
 local function sameRGBA(a, b)
   if not a or not b then return false end
   return a[1]==b[1] and a[2]==b[2] and a[3]==b[3] and (a[4] or 1)==(b[4] or 1)
 end
 
+-- Enables or disables the glow effect on a button.
 local function ensureGlow(btn, shouldEnable, color, size)
   if not GlowLib or not btn then return end
 
@@ -60,13 +64,14 @@ local function ensureGlow(btn, shouldEnable, color, size)
   end
 end
 
+-- Selects the appropriate glow color for an entry.
 local function pickColorForEntry(db, entry, general, special)
   if not entry then return general end
   if entry.glow == "special" then return special end
   return general
 end
 
-
+-- Refreshes the glow effect on all active buttons.
 function ns.RefreshGlow()
   local d = DB()
   local enabled = (d.glowEnabled ~= false)
@@ -87,6 +92,7 @@ function ns.RefreshGlow()
   end
 end
 
+-- Sets the general glow color and state.
 if type(ns.SetGlow) ~= "function" then
   function ns.SetGlow(enabled, r, g, b, a)
     local d = DB()
@@ -98,6 +104,7 @@ if type(ns.SetGlow) ~= "function" then
   end
 end
 
+-- Sets the special glow color.
 if type(ns.SetSpecialGlow) ~= "function" then
   function ns.SetSpecialGlow(r, g, b, a)
     local d = DB()
@@ -108,6 +115,7 @@ if type(ns.SetSpecialGlow) ~= "function" then
   end
 end
 
+-- Ensures glow is applied to a specific button.
 if type(ns.EnsureGlow) ~= "function" then
   function ns.EnsureGlow(btn, enabled, color, size)
     if not btn then return end

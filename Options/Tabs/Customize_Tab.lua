@@ -1,6 +1,8 @@
 -- ====================================
 -- \Options\Tabs\Customize_Tab.lua
 -- ====================================
+-- This file creates the "Customize" tab in the options panel, providing sub-tabs for
+-- Mythic+, Hunter Pets, Tooltips, Delves, and Repair Mount settings.
 
 local addonName, ns = ...
 ns.Options        = ns.Options or {}
@@ -37,6 +39,7 @@ end
 local function DB() return (ns.GetDB and ns.GetDB()) or _G.ClickableRaidBuffsDB or {} end
 local defaults = (O and O.DEFAULTS) or {}
 
+-- Creates a new checkbox with label and callback.
 local function NewCheckbox(parent, label, initial, onToggle)
   local cb = CreateFrame("CheckButton", nil, parent, "BackdropTemplate")
   cb:SetSize(THEME.checkboxBox(), THEME.checkboxBox())
@@ -55,6 +58,7 @@ local function NewCheckbox(parent, label, initial, onToggle)
   return cb, fs
 end
 
+-- Creates a mini tab button.
 local function MakeMiniTab(parent, label)
   local b = CreateFrame("Button", nil, parent, "BackdropTemplate")
   PaintBackdrop(b, THEME.rowBG, THEME.rowBR)
@@ -82,6 +86,7 @@ local function StyleTabNormal(b)
   b:SetBackdropBorderColor(unpack(THEME.rowBR))
 end
 
+-- Triggers updates for Mythic+ settings.
 local function PingMythicPlus()
   if ns and ns.MythicPlus_Recompute then ns.MythicPlus_Recompute() end
   if _G.updateWeaponEnchants then _G.updateWeaponEnchants() end
@@ -100,6 +105,7 @@ local function PingMythicPlus()
   if ns and ns.RenderAll then ns.RenderAll() end
 end
 
+-- Builds the Mythic+ settings panel.
 local function BuildMythicPlusPanel(parent)
   local holder = CreateFrame("Frame", nil, parent, "BackdropTemplate")
   holder:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, -10)
@@ -152,6 +158,7 @@ local function BuildMythicPlusPanel(parent)
   return holder
 end
 
+-- Builds the Hunter Pets settings panel.
 local function BuildHunterPetsPanel(parent)
   local holder = CreateFrame("Frame", nil, parent, "BackdropTemplate")
   holder:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, -10)
@@ -202,6 +209,7 @@ local function BuildHunterPetsPanel(parent)
   return holder
 end
 
+-- Builds the Tooltips settings panel.
 local function BuildTooltipsPanel(parent)
   local holder = CreateFrame("Frame", nil, parent, "BackdropTemplate")
   holder:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, -10)
@@ -221,6 +229,7 @@ local function BuildTooltipsPanel(parent)
   return holder
 end
 
+-- Builds the Delves settings panel.
 local function BuildDelvesPanel(parent)
   local holder = CreateFrame("Frame", nil, parent, "BackdropTemplate")
   holder:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, -10)
@@ -240,6 +249,7 @@ local function BuildDelvesPanel(parent)
   return holder
 end
 
+-- Builds the Repair Mount settings panel.
 local function BuildMountsPanel(parent)
   local holder = CreateFrame("Frame", nil, parent, "BackdropTemplate")
   holder:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, -10)

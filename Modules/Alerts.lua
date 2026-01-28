@@ -1,10 +1,11 @@
 -- ====================================
 -- \Modules\Alerts.lua
 -- ====================================
+-- This module handles raid alerts (e.g., feasts, portals, repair bots).
 
 local addonName, ns = ...
 
-local function DefaultSoundName() return "Alerts: |cffff7d0Ffunki.gg|r Ding Dong" end
+local function DefaultSoundName() return "Alerts: Ding Dong" end
 local function DB() return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or {} end
 local function RAID()
   local d = DB()

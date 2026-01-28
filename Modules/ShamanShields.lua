@@ -1,6 +1,7 @@
 -- ====================================
 -- \Modules\ShamanShields.lua
 -- ====================================
+-- This module handles the display of Shaman shields (Lightning Shield, Water Shield, Earth Shield).
 
 local addonName, ns = ...
 
@@ -16,6 +17,8 @@ local TRUNC_N      = 6
 
 local function InCombat() return InCombatLockdown() end
 
+-- Checks if the player is a Shaman.
+-- Returns cached value during combat.
 local function isShaman()
   if InCombat() then return clickableRaidBuffCache.playerInfo and clickableRaidBuffCache.playerInfo.playerClassId == 7 end
   local cid = (clickableRaidBuffCache.playerInfo and clickableRaidBuffCache.playerInfo.playerClassId)
@@ -23,11 +26,13 @@ local function isShaman()
   return cid == 7
 end
 
+-- Checks if a spell is known by the player.
 local function knowSpell(id)
   return (C_SpellBook and C_SpellBook.IsSpellKnown and C_SpellBook.IsSpellKnown(id))
          or (IsPlayerSpell and IsPlayerSpell(id)) or false
 end
 
+-- Calculates the threshold for showing the shield icon based on spell duration settings.
 local function thresholdSecs()
   local db = (ns.GetDB and ns.GetDB()) or _G.ClickableRaidBuffsDB or {}
   local baseMin = db.spellThreshold or 15
@@ -37,24 +42,29 @@ local function thresholdSecs()
   return baseMin * 60
 end
 
+-- Ensures the display category for Shaman shields exists.
 local function ensureCat()
   clickableRaidBuffCache.displayable[CAT] = clickableRaidBuffCache.displayable[CAT] or {}
   return clickableRaidBuffCache.displayable[CAT]
 end
 
+-- Clears the Shaman shields display category.
 local function clearCat()
   if clickableRaidBuffCache.displayable[CAT] then wipe(clickableRaidBuffCache.displayable[CAT]) end
 end
 
+-- Gets a short name from a unit ID.
 local function shortName(unit)
   local n = UnitName(unit)
   return (n and n ~= "") and n or nil
 end
 
+-- Truncates a name to a fixed length.
 local function truncName(s)
   return (s and s:sub(1, TRUNC_N)) or s
 end
 
+-- Iterates over all group units.
 local function IterateGroupUnits()
   local u = {}
   if IsInRaid() then
@@ -68,6 +78,7 @@ local function IterateGroupUnits()
   return u
 end
 
+-- Checks remaining duration of an aura on a unit.
 local function auraRem(unit, buffId, mineOnly)
   if not buffId then return nil end
   local i=1
@@ -88,6 +99,7 @@ local function auraRem(unit, buffId, mineOnly)
   return nil
 end
 
+-- Checks if an entry has a specific gate.
 local function hasGate(entry, name)
   local g = entry and entry.gates
   if not g then return false end
@@ -97,6 +109,7 @@ local function hasGate(entry, name)
   return false
 end
 
+-- Counts active elemental shields on the player.
 local function countSelfElementals(tbl, hasOrbit, mineOnlyES)
   local LS = tbl[192106]
   local WS = tbl[52127]
@@ -110,6 +123,7 @@ local function countSelfElementals(tbl, hasOrbit, mineOnlyES)
   return c
 end
 
+-- Counts active elemental shields on the player with sufficient duration.
 local function countSelfAbove(tbl, hasOrbit, tSec, mineOnlyES)
   local LS = tbl[192106]
   local WS = tbl[52127]
@@ -126,6 +140,7 @@ local function countSelfAbove(tbl, hasOrbit, tSec, mineOnlyES)
   return c
 end
 
+-- Finds the soonest expiring Earth Shield on other group members.
 local function soonestEarthOnOthers(ES, mineOnlyES)
   if not ES or not ES.buffOnOthers then return nil end
   local want = ES.buffOnOthers
@@ -139,6 +154,7 @@ local function soonestEarthOnOthers(ES, mineOnlyES)
   return best
 end
 
+-- Finds the soonest expiring Earth Shield anywhere (no Orbit talent).
 local function soonestEarthAnywhere_NoOrbit(ES, mineOnlyES)
   if not ES or not ES.buffOnOthers then return nil end
   local want = ES.buffOnOthers
@@ -150,6 +166,7 @@ local function soonestEarthAnywhere_NoOrbit(ES, mineOnlyES)
   return best
 end
 
+-- Checks if a name is in the group.
 local function nameInGroup(short)
   if not short or short=="" then return false end
   for _, u in ipairs(IterateGroupUnits()) do
@@ -158,6 +175,7 @@ local function nameInGroup(short)
   return false
 end
 
+-- Updates the fixed target for Earth Shield if cast on a group member.
 local function learnEarthFixedFrom(unit, ES)
   if not ES or not ES.buffOnOthers then return false end
   if not unit or unit=="player" then return false end
@@ -181,10 +199,13 @@ local function learnEarthFixedFrom(unit, ES)
   return false
 end
 
+-- Checks if the player is in a rested area.
 local function InRestedArea()
   return IsResting() or false
 end
 
+-- Rebuilds the Shaman shields display list.
+-- Skipped during combat.
 local function Build()
   if InCombat() then return end
   if not isShaman() then clearCat(); return end
@@ -297,12 +318,14 @@ local function Build()
   end
 end
 
+-- Public API to rebuild Shaman shields display.
 function ns.ShamanShields_Rebuild()
   if InCombat() then return end
   Build()
   if ns.RenderAll and not InCombat() then ns.RenderAll() end
 end
 
+-- Event handlers
 function ns.ShamanShields_OnPEW()
   ns.ShamanShields_Rebuild()
   return true

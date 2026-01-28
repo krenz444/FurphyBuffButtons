@@ -1,27 +1,26 @@
 -- ====================================
 -- \UI\Fonts.lua
 -- ====================================
+-- This file manages font registration and retrieval for the addon.
 
 local addonName, ns = ...
+ns.FontObjects = ns.FontObjects or {}
 
-function ns.EntryKey(cat, entry)
-    if cat == "MAIN_HAND" then
-        return "MH:" .. tostring(entry.itemID or entry.name or "")
-    elseif cat == "OFF_HAND" then
-        return "OH:" .. tostring(entry.itemID or entry.name or "")
+local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+
+-- Registers a font with LibSharedMedia if available.
+function ns.RegisterFont(name, path)
+    if LSM then
+        LSM:Register("font", name, path)
     end
-    if entry.itemID then
-        return cat .. ":item:" .. entry.itemID
-    end
-    if entry.spellID then
-        return cat .. ":spell:" .. entry.spellID
-    end
-    return cat .. ":name:" .. tostring(entry.name or "")
 end
 
-function ns.SetIconTextureIfChanged(btn, tex)
-    if btn.icon._crb_tex ~= tex then
-        btn.icon:SetTexture(tex or 134400)
-        btn.icon._crb_tex = tex
+-- Retrieves the file path for a registered font name.
+function ns.GetFontPath(name)
+    if not name then return "Fonts\\FRIZQT__.TTF" end
+    if LSM then
+        local p = LSM:Fetch("font", name, true)
+        if p then return p end
     end
+    return "Fonts\\FRIZQT__.TTF"
 end

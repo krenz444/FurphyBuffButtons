@@ -1,6 +1,7 @@
 -- ====================================
 -- \Options\NumberSelect.lua
 -- ====================================
+-- This file implements a custom number selection widget with increment/decrement arrows.
 
 local addonName, ns = ...
 ns.NumberSelect = ns.NumberSelect or {}
@@ -18,8 +19,10 @@ if not StaticPopupDialogs[POP_KEY] then
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
   }
 end
+-- Shows a confirmation popup for resetting the value.
 local function Confirm(msg, fn) StaticPopup_Show(POP_KEY, msg or "Reset value?", nil, fn) end
 
+-- Resolves the font to use for the panel.
 local function ResolvePanelFont()
   if O and O.ResolvePanelFont then return O.ResolvePanelFont() end
   local fallback = GameFontNormal and select(1, GameFontNormal:GetFont())
@@ -27,6 +30,7 @@ local function ResolvePanelFont()
 end
 
 local ARROW_W, ARROW_H = 24, 24
+-- Creates an arrow button.
 local function makeArrow(parent, side)
   local b = CreateFrame("Button", nil, parent)
   b:SetSize(ARROW_W, ARROW_H)
@@ -41,6 +45,7 @@ local function makeArrow(parent, side)
   return b
 end
 
+-- Creates a number selection widget.
 function ns.NumberSelect.Create(parent, args)
   args = args or {}
   local minV    = tonumber(args.min) or 0

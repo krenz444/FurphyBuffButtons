@@ -1,6 +1,7 @@
 -- ====================================
 -- \Modules\Trinkets.lua
 -- ====================================
+-- This module handles the tracking and display of usable trinkets.
 
 local addonName, ns = ...
 
@@ -8,12 +9,15 @@ clickableRaidBuffCache = clickableRaidBuffCache or {}
 clickableRaidBuffCache.playerInfo  = clickableRaidBuffCache.playerInfo  or {}
 clickableRaidBuffCache.displayable = clickableRaidBuffCache.displayable or {}
 
+-- Retrieves the player's class ID.
+-- Returns nil during combat.
 local function getPlayerClass()
   if InCombatLockdown() then return nil end
   local _, _, classID = UnitClass("player")
   return classID
 end
 
+-- Checks if a trinket is equipped in either slot.
 local function IsTrinketEquipped(itemID)
   if not itemID then return false end
   local s13 = GetInventoryItemID("player", 13)
@@ -25,6 +29,7 @@ local function IsTrinketEquipped(itemID)
   return false
 end
 
+-- Checks if a row in the data table corresponds to an equipped trinket.
 local function IsRowKnown(data, rowKey)
   local k = data and data.isKnown
   if type(k) == "number" then
@@ -37,6 +42,7 @@ local function IsRowKnown(data, rowKey)
   end
 end
 
+-- Rebuilds the list of trinket buffs to watch for.
 function ns.Trinkets_RebuildWatch()
   ns._trinketWatch = { spellId = {}, name = {} }
 
@@ -62,6 +68,8 @@ function ns.Trinkets_RebuildWatch()
   addTable(classBuffs)
 end
 
+-- Handles UNIT_AURA events to update trinket status.
+-- Skipped during combat.
 function ns.Trinkets_OnUnitAura(unit, updateInfo)
   if InCombatLockdown() then
     return
@@ -121,6 +129,8 @@ function ns.Trinkets_OnUnitAura(unit, updateInfo)
   end
 end
 
+-- Scans for usable trinkets and updates the displayable list.
+-- Skipped during combat.
 function ns.Trinkets_Scan()
   if InCombatLockdown() then return end
 
@@ -467,10 +477,12 @@ end
   end
 end
 
+-- Public API to rebuild trinket display.
 function ns.Trinkets_Rebuild()
   ns.Trinkets_RebuildWatch()
 end
 
+-- Event handlers
 function ns.Trinkets_OnGroupRosterUpdate()
   ns.Trinkets_RebuildWatch()
   return true
@@ -480,6 +492,7 @@ function ns.Trinkets_OnCombatLogEventUnfiltered()
   return false
 end
 
+-- Hooks scanRaidBuffs to include trinket scanning.
 if type(scanRaidBuffs) == "function" and not ns._mergedScan then
   local _crb_orig_scanRaidBuffs = scanRaidBuffs
   scanRaidBuffs = function(...)

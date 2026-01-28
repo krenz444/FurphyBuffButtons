@@ -1,6 +1,7 @@
 -- ====================================
 -- \Gates\Death_Gate.lua
 -- ====================================
+-- Gate that only passes when the player is alive (not dead or ghost).
 
 local addonName, ns = ...
 

@@ -1,6 +1,7 @@
 -- ====================================
 -- \Core\RaidBuffsScan.lua
 -- ====================================
+-- This file handles the scanning of raid buffs and updating the displayable list.
 
 local addonName, ns = ...
 
@@ -8,12 +9,15 @@ clickableRaidBuffCache = clickableRaidBuffCache or {}
 clickableRaidBuffCache.playerInfo  = clickableRaidBuffCache.playerInfo  or {}
 clickableRaidBuffCache.displayable = clickableRaidBuffCache.displayable or {}
 
+-- Retrieves the player's class ID.
+-- Returns nil during combat.
 local function getPlayerClass()
   if InCombatLockdown() then return nil end
   local _, _, classID = UnitClass("player")
   return classID
 end
 
+-- Checks if the player knows a specific spell.
 local function PlayerKnowsSpell(id)
   if not id then return false end
   if C_SpellBook and C_SpellBook.IsSpellKnown then
@@ -26,6 +30,7 @@ local function PlayerKnowsSpell(id)
   return false
 end
 
+-- Checks if a row in the data table is known by the player.
 local function IsRowKnown(data, rowKey)
   local k = data and data.isKnown
   if type(k) == "number" then
@@ -38,6 +43,7 @@ local function IsRowKnown(data, rowKey)
   end
 end
 
+-- Rebuilds the list of raid buffs to watch for based on the player's class.
 function ns.RebuildRaidBuffWatch()
   ns._raidBuffWatch = { spellId = {}, name = {} }
 
@@ -63,6 +69,8 @@ function ns.RebuildRaidBuffWatch()
   addTable(classBuffs)
 end
 
+-- Handles UNIT_AURA events to update raid buff status.
+-- Skipped during combat.
 function ns.HandleRaidBuff_UNIT_AURA(unit, updateInfo)
   if InCombatLockdown() then
     return
@@ -122,6 +130,8 @@ function ns.HandleRaidBuff_UNIT_AURA(unit, updateInfo)
   end
 end
 
+-- Main function to scan for missing raid buffs and populate the displayable list.
+-- Skipped during combat.
 function scanRaidBuffs()
   if InCombatLockdown() then return end
 

@@ -1,6 +1,7 @@
 -- ====================================
 -- \Modules\RoguePoisons.lua
 -- ====================================
+-- This module handles the display of Rogue poisons (Lethal and Non-Lethal).
 
 local addonName, ns = ...
 
@@ -14,15 +15,19 @@ local function DB() return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or 
 local function InCombat() return InCombatLockdown() end
 local function IsDeadOrGhost() return UnitIsDeadOrGhost("player") end
 
+-- Ensures the display category for rogue poisons exists.
 local function ensureCat()
   clickableRaidBuffCache.displayable[CAT] = clickableRaidBuffCache.displayable[CAT] or {}
   return clickableRaidBuffCache.displayable[CAT]
 end
 
+-- Clears the display category.
 local function clearCat()
   if clickableRaidBuffCache.displayable[CAT] then wipe(clickableRaidBuffCache.displayable[CAT]) end
 end
 
+-- Checks if the player is a Rogue.
+-- Returns cached value during combat.
 local function isRogue()
   if InCombat() then return clickableRaidBuffCache.playerInfo and clickableRaidBuffCache.playerInfo.playerClassId == 4 end
   local cid = (clickableRaidBuffCache.playerInfo and clickableRaidBuffCache.playerInfo.playerClassId)
@@ -30,11 +35,13 @@ local function isRogue()
   return cid == 4
 end
 
+-- Checks if a spell is known by the player.
 local function knowSpell(id)
   return (C_SpellBook and C_SpellBook.IsSpellKnown and C_SpellBook.IsSpellKnown(id))
          or (IsPlayerSpell and IsPlayerSpell(id)) or false
 end
 
+-- Calculates the threshold for showing the poison icon based on spell duration settings.
 local function spellThresholdSecs()
   local db = (ns.GetDB and ns.GetDB()) or _G.ClickableRaidBuffsDB or {}
   local baseMin = db.spellThreshold or 15
@@ -44,6 +51,7 @@ local function spellThresholdSecs()
   return baseMin * 60
 end
 
+-- Checks remaining duration of a poison on the player.
 local function auraRemOnPlayer(buffId)
   if not buffId then return nil end
   local i = 1
@@ -62,6 +70,7 @@ local function auraRemOnPlayer(buffId)
   return nil
 end
 
+-- Counts active poisons in a category (Lethal/Non-Lethal) above the threshold.
 local function countCatAbove(tbl, cat, tSec)
   local c = 0
   for _, row in pairs(tbl) do
@@ -75,6 +84,8 @@ local function countCatAbove(tbl, cat, tSec)
   return c
 end
 
+-- Rebuilds the display list for rogue poisons.
+-- Skipped during combat.
 local function Build()
   if InCombat() or IsDeadOrGhost() then
     clearCat()
@@ -134,6 +145,7 @@ local function Build()
   end
 end
 
+-- Public API to rebuild the display list.
 function ns.RoguePoisons_Rebuild()
   Build()
   if ns.RenderAll and not InCombat() and not IsDeadOrGhost() then
@@ -141,6 +153,7 @@ function ns.RoguePoisons_Rebuild()
   end
 end
 
+-- Watches for changes in threshold settings.
 local _lastSpellThreshold = spellThresholdSecs()
 local function EnsureThresholdWatcher()
   if ns._roguePoisonsThresholdWatcher then return end
@@ -156,6 +169,7 @@ local function EnsureThresholdWatcher()
 end
 EnsureThresholdWatcher()
 
+-- Event handlers
 function ns.RoguePoisons_OnPEW()
   ns.RoguePoisons_Rebuild()
   return true

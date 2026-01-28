@@ -1,6 +1,7 @@
 -- ====================================
 -- \Gates\Level_Gate.lua
 -- ====================================
+-- Gate that restricts icons based on minimum player level requirements.
 
 local addonName, ns = ...
 

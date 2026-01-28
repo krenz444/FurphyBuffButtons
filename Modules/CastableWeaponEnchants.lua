@@ -1,6 +1,7 @@
 -- ====================================
 -- \Modules\CastableWeaponEnchants.lua
 -- ====================================
+-- This module handles weapon enchants that are cast as spells (e.g., Flametongue Weapon, Windfury Weapon).
 
 local addonName, ns = ...
 
@@ -13,11 +14,13 @@ local function DB() return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or 
 local function InCombat() return InCombatLockdown() end
 local function IsDeadOrGhost() return UnitIsDeadOrGhost("player") end
 
+-- Checks if debug mode is enabled for this module.
 local function DebugOn()
   local d = DB()
   return (ns and ns.DEBUG_CWE) or (clickableRaidBuffCache and clickableRaidBuffCache.debugCWE) or (d and (d.debugCWE or d.debugAll or d.debug))
 end
 
+-- Logs debug messages.
 local function Log(fmt, ...)
   if not DebugOn() then return end
   local msg = "[CWE] " .. string.format(fmt, ...)
@@ -28,6 +31,7 @@ local function Log(fmt, ...)
   end
 end
 
+-- Calculates the threshold for showing the enchant icon based on duration settings.
 local function spellThresholdSecs()
   local m = DB().weaponThreshold or 15
   if ns.MPlus_GetEffectiveThresholdSecs then
@@ -40,16 +44,19 @@ local function spellThresholdSecs()
   return secs
 end
 
+-- Ensures the display category for castable weapon enchants exists.
 local function ensureCat()
   clickableRaidBuffCache.displayable[CAT] = clickableRaidBuffCache.displayable[CAT] or {}
   return clickableRaidBuffCache.displayable[CAT]
 end
 
+-- Clears the display category.
 local function clearCat()
   if clickableRaidBuffCache.displayable[CAT] then wipe(clickableRaidBuffCache.displayable[CAT]) end
   Log("Cleared category displayables")
 end
 
+-- Checks if a spell is known by the player.
 local function knowSpell(id)
   if not id or not C_SpellBook or not Enum or not Enum.SpellBookSpellBank then
     Log("knowSpell(%s) -> false (APIs/ID missing)", tostring(id))
@@ -61,6 +68,7 @@ local function knowSpell(id)
   return ok and true or false
 end
 
+-- Checks if a row passes gating requirements.
 local function passesGates(row)
   local g = row and row.gates
   if not g then return true end
@@ -74,6 +82,7 @@ local function passesGates(row)
   return true
 end
 
+-- Checks remaining duration of a weapon enchant on a specific slot.
 local function SlotEnchantRemaining(slotid)
   local hasMH, mhMs, _, _, hasOH, ohMs = GetWeaponEnchantInfo()
   if slotid == 16 then
@@ -97,6 +106,7 @@ local WEAPON_CLASS = (Enum and Enum.ItemClass and Enum.ItemClass.Weapon) or LE_I
 local ARMOR_CLASS  = (Enum and Enum.ItemClass and Enum.ItemClass.Armor)  or LE_ITEM_CLASS_ARMOR  or 4
 local ARMOR_SHIELD = (Enum and Enum.ItemArmorSubclass and Enum.ItemArmorSubclass.Shield) or LE_ITEM_ARMOR_SHIELD or 6
 
+-- Checks if the item in a slot matches the required weapon type.
 local function SlotMatchesType(slotid, wepType)
   local itemID = GetInventoryItemID("player", slotid)
   if not itemID then
@@ -115,6 +125,7 @@ local function SlotMatchesType(slotid, wepType)
   end
 end
 
+-- Determines the effective slot for a spell (e.g., Flametongue depends on spec).
 local function EffectiveSlotForRow(row)
   if not row then return nil end
   if row.spellID == 318038 then
@@ -127,6 +138,8 @@ local function EffectiveSlotForRow(row)
   return row.slotid
 end
 
+-- Rebuilds the display list for castable weapon enchants.
+-- Skipped during combat.
 local function Build(fromRender)
   if InCombat() or IsDeadOrGhost() then
     clearCat()
@@ -199,11 +212,13 @@ local function Build(fromRender)
   if not fromRender and ns.RenderAll and not InCombat() then ns.RenderAll() end
 end
 
+-- Public API to rebuild the display list.
 function ns.CastableWeaponEnchants_Rebuild()
   Log("API: CastableWeaponEnchants_Rebuild")
   Build(false)
 end
 
+-- Hooks GetCategoryOrder to ensure this category is included.
 local function EnsureOrderHook()
   if ns._cwe_order_wrapped then return end
   if type(ns.GetCategoryOrder) ~= "function" then return end
@@ -227,6 +242,7 @@ local function EnsureOrderHook()
   Log("Order hook installed")
 end
 
+-- Hooks RenderAll to ensure this module is updated before rendering.
 local function EnsureRenderHook()
   if ns._cwe_render_wrapped then return end
   if type(ns.RenderAll) == "function" then

@@ -1,6 +1,7 @@
 -- ====================================
 -- \Core\MinimapButton.lua
 -- ====================================
+-- This file handles the creation and management of the minimap button using LibDataBroker and LibDBIcon.
 
 local addonName, ns = ...
 
@@ -11,6 +12,7 @@ local LDB = LibStub("LibDataBroker-1.1")
 local LDI = LibStub("LibDBIcon-1.0", true)
 local AceDB = LibStub("AceDB-3.0")
 
+-- Create the data object for the minimap button
 local miniButton = LDB:NewDataObject("ClickableRaidBuffs", {
     type = "data source",
     text = "CRB",
@@ -49,6 +51,7 @@ local miniButton = LDB:NewDataObject("ClickableRaidBuffs", {
     end,
 })
 
+-- Refreshes the minimap icon state (show/hide) based on settings
 function ClickableRaidBuffs:RefreshMinimapIcon()
     if not (LDI and self.minimapDB and self.minimapDB.profile) then return end
     local prof = self.minimapDB.profile
@@ -67,6 +70,7 @@ function ClickableRaidBuffs:RefreshMinimapIcon()
     end
 end
 
+-- Initializes the minimap button and database
 function ClickableRaidBuffs:OnInitialize()
     self.minimapDB = AceDB:New("ClickableRaidBuffsMinimapDB", {
         profile = {
@@ -104,6 +108,7 @@ function ClickableRaidBuffs:OnMinimapProfileChanged()
     self:RefreshMinimapIcon()
 end
 
+-- Toggles the visibility of the minimap button
 function ClickableRaidBuffs:ToggleMinimapButton(state)
     if not (LDI and self.minimapDB and self.minimapDB.profile) then return end
 
@@ -126,6 +131,7 @@ function ClickableRaidBuffs:ToggleMinimapButton(state)
     end
 end
 
+-- Public API to toggle the minimap button
 function ns.ToggleMinimapButton(state)
     if ClickableRaidBuffs and ClickableRaidBuffs.ToggleMinimapButton then
         ClickableRaidBuffs:ToggleMinimapButton(state)

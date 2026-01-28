@@ -1,6 +1,8 @@
 -- ====================================
 -- \Options\OptionElements.lua
 -- ====================================
+-- This file provides a library of reusable UI elements for the options panel,
+-- such as checkboxes, color swatches, font pickers, and layout managers.
 
 local addonName, ns = ...
 ns.Options = ns.Options or {}
@@ -10,6 +12,7 @@ ns.OptionElements = ns.OptionElements or {}
 local OE = ns.OptionElements
 
 ns._optionSyncers = ns._optionSyncers or {}
+-- Syncs all registered option elements with the current database values.
 function ns.SyncOptions()
   for i = 1, #ns._optionSyncers do
     local f = ns._optionSyncers[i]
@@ -22,6 +25,7 @@ end
 local function DB() return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or {} end
 local defaults = O.DEFAULTS or {}
 
+-- Theme constants for UI elements.
 local THEME = {
   fontPath      = function() if O and O.ResolvePanelFont then return O.ResolvePanelFont() end return "Fonts\\FRIZQT__.TTF" end,
   sizeLabel     = function() return (O.SIZE_LABEL or 14) end,
@@ -48,12 +52,14 @@ local THEME = {
   tickTint      = {0.35,0.80,1.00,1},
 }
 
+-- Helper to paint a frame with a backdrop.
 local function PaintBackdrop(frame, bg, br)
   frame:SetBackdrop({ bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1 })
   frame:SetBackdropColor(unpack(bg or THEME.cardBG))
   frame:SetBackdropBorderColor(unpack(br or THEME.cardBR))
 end
 
+-- Helper to paint only the border of a frame.
 local function PaintBorderOnly(frame, br)
   frame:SetBackdrop({ bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1 })
   frame:SetBackdropColor(0,0,0,0)
@@ -62,6 +68,7 @@ end
 
 local _pendingOptionsRefresh
 local function _safeCall(f, ...) if type(f)=="function" then local ok = pcall(f, ...) return ok end return false end
+-- Notifies the addon that options have changed, triggering updates.
 local function NotifyChanged()
   if _pendingOptionsRefresh then return end
   _pendingOptionsRefresh = true
@@ -83,11 +90,13 @@ if not StaticPopupDialogs[POPUP_KEY] then
     timeout = 0, whileDead = 1, hideOnEscape = 1, preferredIndex = 3,
   }
 end
+-- Shows a confirmation popup for resetting settings.
 local function ConfirmReset(run, what)
   local msg = "Reset "..(what or "setting").." to default?"
   StaticPopup_Show(POPUP_KEY, msg, nil, { run = run })
 end
 
+-- Styles a button with a reset icon.
 function OE.StyleButton(btn)
   if not btn._icon then
     btn._icon = btn:CreateTexture(nil, "ARTWORK")
@@ -98,6 +107,7 @@ function OE.StyleButton(btn)
   end
 end
 
+-- Raises a frame above others.
 local function _raiseAbove(btn, frames)
   local top = btn:GetFrameLevel()
   for i=1,#frames do
@@ -112,6 +122,7 @@ local function _raiseAbove(btn, frames)
   if p and p.GetFrameStrata then btn:SetFrameStrata(p:GetFrameStrata() or "MEDIUM") end
 end
 
+-- Sets tooltip font to match addon style.
 local function _setTooltipFont()
   local face = (O and O.ResolvePanelFont and O.ResolvePanelFont()) or "Fonts\\FRIZQT__.TTF"
   if GameTooltipText then
@@ -127,6 +138,7 @@ local function _setTooltipFont()
     GameTooltipTextSmall:SetFont(face, select(2, GameTooltipTextSmall:GetFont()))
   end
 end
+-- Restores tooltip font.
 local function _restoreTooltipFont()
   local function restore(obj)
     if obj and obj._crbOld then
@@ -137,6 +149,7 @@ local function _restoreTooltipFont()
   restore(GameTooltipText); restore(GameTooltipHeaderText); restore(GameTooltipTextSmall)
 end
 
+-- Creates a new reset button.
 function OE.NewResetButton(parent)
   local b = CreateFrame("Button", nil, parent)
   b:SetSize(THEME.resetW(), THEME.resetH())
@@ -154,6 +167,7 @@ function OE.NewResetButton(parent)
   return b
 end
 
+-- Installs hover behavior to show/hide the reset button.
 local function InstallHoverReveal(resetBtn, watched)
   local function anyOver()
     if resetBtn:IsMouseOver() then return true end
@@ -179,6 +193,7 @@ local function InstallHoverReveal(resetBtn, watched)
   hook(resetBtn)
 end
 
+-- Attaches a reset button to a parent frame.
 function OE.AttachResetTo(parent, point, relTo, relPoint, x, y, onClick)
   local btn = OE.NewResetButton(parent)
   btn:ClearAllPoints()
@@ -193,6 +208,7 @@ function OE.AttachResetTo(parent, point, relTo, relPoint, x, y, onClick)
   return btn
 end
 
+-- Creates a color swatch button.
 local function NewColorSwatch(parent)
   local b = CreateFrame("Button", nil, parent, "BackdropTemplate")
   b:SetSize(THEME.swatchW(), THEME.swatchH())
@@ -208,6 +224,7 @@ local function NewColorSwatch(parent)
   return b
 end
 
+-- Creates a checkbox button.
 local function NewCheckbox(parent)
   local cb = CreateFrame("CheckButton", nil, parent, "BackdropTemplate")
   cb:SetSize(THEME.checkboxBox(), THEME.checkboxBox())
@@ -236,6 +253,7 @@ local function NewCheckbox(parent)
   return cb
 end
 
+-- Layout manager for a single column flow.
 local function beginFlow(parent, opts)
   local ctx = { holder = parent, y = 0, gap = (opts and opts.rowGap) or THEME.rowGap, cells = {} }
   function ctx:_place(cell, h)
@@ -251,6 +269,7 @@ local function beginFlow(parent, opts)
   return ctx
 end
 
+-- Layout manager for a grid.
 local function beginGrid(parent, opts)
   local w = math.max(200, parent:GetWidth() or 700)
   local ctx = { holder = parent, col = 1, row = 1, colGap = (opts and opts.colGap) or THEME.colGap, rowGap = (opts and opts.rowGap) or THEME.rowGap, rowH = (opts and opts.rowH) or THEME.rowH, width = w, cells = {} }
@@ -272,6 +291,7 @@ local function beginGrid(parent, opts)
   return ctx
 end
 
+-- Layout manager for a triple column grid.
 local function beginTriple(parent, opts)
   local ctx = {
     holder   = parent,
@@ -373,6 +393,7 @@ local function clampNum(v, lo, hi)
   return math.floor(v + 0.5)
 end
 
+-- Builds a text color picker cell.
 local function buildTextColorCell(parent, args)
   local cell = CreateFrame("Frame", nil, parent)
   cell:EnableMouse(true)
@@ -424,6 +445,7 @@ local function buildTextColorCell(parent, args)
   return cell
 end
 
+-- Builds a font picker cell.
 local function buildFontPickerCell(parent, args)
   local cell = CreateFrame("Frame", nil, parent)
   cell:EnableMouse(true)
@@ -598,6 +620,7 @@ local function buildFontPickerCell(parent, args)
   return cell
 end
 
+-- Creates a single column layout.
 function OE.SingleColumn(parent, buildFn)
   local flow = beginFlow(parent)
   local api  = {}
@@ -634,6 +657,7 @@ function OE.SingleColumn(parent, buildFn)
   return flow.holder
 end
 
+-- Creates a dual column layout.
 function OE.DualColumn(parent, buildFn)
   local grid = beginGrid(parent)
   local api  = {}
@@ -644,6 +668,7 @@ function OE.DualColumn(parent, buildFn)
   return grid.holder
 end
 
+-- Creates a triple column layout.
 function OE.TripleColumn(parent, buildFn)
   local grid = beginTriple(parent)
   local api  = {}

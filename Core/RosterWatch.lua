@@ -1,10 +1,14 @@
 -- ====================================
 -- \Core\RosterWatch.lua
 -- ====================================
+-- This file monitors roster changes and triggers updates when the group composition changes.
 
 local addonName, ns = ...
 
 local pending = false
+
+-- Performs the refresh logic.
+-- Skipped during combat.
 local function DoRefresh()
     pending = false
     if InCombatLockdown() then return end

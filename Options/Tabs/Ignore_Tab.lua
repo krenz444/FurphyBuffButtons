@@ -1,6 +1,8 @@
 -- ====================================
 -- \Options\Tabs\Ignore_Tab.lua
 -- ====================================
+-- This file creates the "Ignore" tab in the options panel, allowing users to exclude
+-- specific buffs, items, or categories from being tracked and displayed.
 
 local addonName, ns = ...
 ns.Options = ns.Options or {}
@@ -12,6 +14,7 @@ local function DB()
   return (ns.GetDB and ns.GetDB()) or _G.ClickableRaidBuffsDB or {}
 end
 
+-- Retrieves the appropriate exclusion set (general or raid buff specific) based on the active key.
 local function GetExcludedSet(activeKey)
   local d = DB()
   d.exclusions = d.exclusions or {}
@@ -23,6 +26,7 @@ local function GetExcludedSet(activeKey)
   end
 end
 
+-- Checks if an ID is excluded for a given category key.
 function ns.IsExcluded(id, activeKey)
   if not id then return false end
 
@@ -41,6 +45,7 @@ end
 
 local _pendingOptionsRefresh
 local function _safeCall(f, ...) if type(f)=="function" then local ok=pcall(f, ...); return ok end return false end
+-- Notifies the addon of changes to exclusions, triggering a refresh.
 local function NotifyChanged()
   if _pendingOptionsRefresh then return end
   _pendingOptionsRefresh = true
@@ -52,6 +57,7 @@ local function NotifyChanged()
   end)
 end
 
+-- Applies changes immediately without a full UI reload.
 local function ApplyNow_NoReload()
   _safeCall(ns.RebuildDisplayables)
   _safeCall(ns.RefreshEverything)

@@ -1,15 +1,20 @@
 -- ====================================
 -- \Core\Buffs.lua
 -- ====================================
+-- This file contains helper functions for checking player and raid buffs.
+
 local addonName, ns = ...
 
+-- Retrieves the localized name of a spell by its ID.
 function ns.GetLocalizedBuffName(spellID)
     local info = C_Spell.GetSpellInfo(spellID)
     return info and info.name or nil
 end
 
+-- List of spell IDs to exclude from name-based lookups.
 local NAME_MODE_EXCLUDE = { [442522] = true }
 
+-- Builds a lookup table of localized spell names from a list of spell IDs.
 local function BuildNameLookup(spellIDs)
     local t = {}
     for _, id in ipairs(spellIDs or {}) do
@@ -19,6 +24,8 @@ local function BuildNameLookup(spellIDs)
     return next(t) and t or nil
 end
 
+-- Checks if the player has any of the specified buffs and returns the expiration time.
+-- Skipped during combat.
 function ns.GetPlayerBuffExpire(spellIDs, nameMode, infinite)
     if InCombatLockdown() then return nil end
     local function handleAura(aura)
@@ -56,6 +63,7 @@ function ns.GetPlayerBuffExpire(spellIDs, nameMode, infinite)
     return nil
 end
 
+-- Returns a list of unit IDs for all group members (raid or party).
 local function GetAllGroupUnits()
     local units = {}
     if IsInRaid() then
@@ -69,6 +77,8 @@ local function GetAllGroupUnits()
     return units
 end
 
+-- Checks if all raid members have the specified buff and returns the earliest expiration time.
+-- Skipped during combat.
 function ns.GetRaidBuffExpire(spellIDs, nameMode, infinite)
     if InCombatLockdown() then return nil end
     local spellLookup, nameLookup
@@ -112,6 +122,8 @@ function ns.GetRaidBuffExpire(spellIDs, nameMode, infinite)
     return earliest
 end
 
+-- Checks if raid members have a buff cast by the player.
+-- Skipped during combat.
 function ns.GetRaidBuffExpireMine(spellIDs, nameMode, infinite)
     if InCombatLockdown() then return nil end
     local playerGUID = UnitGUID("player")

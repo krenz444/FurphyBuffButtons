@@ -1,18 +1,21 @@
 -- ====================================
 -- \UI\TextStyles.lua
 -- ====================================
+-- This file manages the styling (font, size, color, outline) of text elements on buttons.
 
 local addonName, ns = ...
 
 local function InCombat() return InCombatLockdown() end
 local function DB() return (ns.GetDB and ns.GetDB()) or ClickableRaidBuffsDB or {} end
 
+-- Retrieves LibSharedMedia if available.
 local function getLSM()
   local ok, LSM = pcall(LibStub, "LibSharedMedia-3.0")
   if ok and LSM then return LSM end
   return nil
 end
 
+-- Gets the font path from the database or defaults.
 local function fontPathFromDB()
   local db = DB()
   local LSM = getLSM()
@@ -22,8 +25,10 @@ local function fontPathFromDB()
   return db.fontName or "Fonts\\FRIZQT__.TTF"
 end
 
+-- Converts boolean outline flag to string.
 local function applyFlags(wantOutline) return (wantOutline and "OUTLINE") or "" end
 
+-- Scales font size based on button size.
 local function scaled(base, btn)
   local db = DB()
   local w = (btn and btn.GetWidth and btn:GetWidth()) or (db.iconSize or ns.BASE_ICON_SIZE or 50)
@@ -35,6 +40,7 @@ local function scaled(base, btn)
   return px
 end
 
+-- Sets font properties only if they have changed.
 local function setFontIfChanged(fs, path, size, flags)
   local curPath, curSize, curFlags = fs:GetFont()
   if curPath ~= path or curSize ~= size or (curFlags or "") ~= (flags or "") then
@@ -42,6 +48,7 @@ local function setFontIfChanged(fs, path, size, flags)
   end
 end
 
+-- Sets text color only if it has changed.
 local function setColorIfChanged(fs, r, g, b, a)
   local cr, cg, cb, ca = fs:GetTextColor()
   if cr ~= r or cg ~= g or cb ~= b or ca ~= a then
@@ -49,6 +56,7 @@ local function setColorIfChanged(fs, r, g, b, a)
   end
 end
 
+-- Helper to extract color values from a table or arguments.
 local function colorOr(tbl, r, g, b, a)
   if type(tbl) == "table" then
     return tbl.r or r or 1, tbl.g or g or 1, tbl.b or b or 1, tbl.a or a or 1
@@ -56,6 +64,7 @@ local function colorOr(tbl, r, g, b, a)
   return r or 1, g or 1, b or 1, a or 1
 end
 
+-- Helpers to identify font strings.
 local function parentOf(fs) return (fs and fs.GetParent) and fs:GetParent() or nil end
 local function isCenterFS(fs)  local p=parentOf(fs); return p and p.centerText  == fs end
 local function isTopFS(fs)     local p=parentOf(fs); return p and p.topText     == fs end
@@ -63,6 +72,7 @@ local function isBottomFS(fs)  local p=parentOf(fs); return p and p.bottomText  
 local function isTimerFS(fs)   local p=parentOf(fs); return p and p.timerText   == fs end
 local function isCornerFS(fs)  local p=parentOf(fs); return p and p.cornerText  == fs end
 
+-- Pickers for font properties based on DB settings.
 local function pickCenterSize(btn)
   local db = DB()
   local want = db.centerSize or db.timerSize or 28
@@ -100,6 +110,7 @@ local function pickCornerSize(btn)    return scaled(DB().cornerSize or DB().bott
 local function pickCornerOutline()    local v=DB().cornerOutline; return (v ~= false) end
 local function pickCornerColor()      return colorOr(DB().cornerTextColor, 1,1,1,1) end
 
+-- Styling functions for specific text elements.
 local function styleCenter(fs)
   local btn = parentOf(fs)
   local path = fontPathFromDB()
@@ -150,6 +161,7 @@ local function styleCorner(fs)
   setColorIfChanged(fs, r, g, b, a)
 end
 
+-- Dispatches styling to the correct function based on the font string.
 local function styleForFS(fs)
   if not fs then return end
   if isCenterFS(fs)  then styleCenter(fs);  return end
@@ -159,6 +171,7 @@ local function styleForFS(fs)
   if isCornerFS(fs)  then styleCorner(fs);  return end
 end
 
+-- Hooks UpdateFontString to apply styles automatically.
 local function EnsureUFSHook()
   local cur = ns.UpdateFontString
   if type(cur) ~= "function" then return end
@@ -178,6 +191,7 @@ EnsureUFSHook()
 C_Timer.After(0.05, EnsureUFSHook)
 C_Timer.After(0.5, EnsureUFSHook)
 
+-- Restyles all text elements on a button.
 local function RestyleButtonTexts(btn)
   if not btn or not btn:IsShown() then return end
   if btn.centerText  then styleForFS(btn.centerText)  end
@@ -187,6 +201,8 @@ local function RestyleButtonTexts(btn)
   if btn.cornerText  then styleForFS(btn.cornerText)  end
 end
 
+-- Restyles all visible buttons.
+-- Skipped during combat.
 local function RestyleAllVisible()
   if InCombat() then return end
   local frames = ns.RenderFrames
@@ -199,6 +215,7 @@ local function RestyleAllVisible()
   end
 end
 
+-- Hooks RenderAll to trigger restyling.
 local function EnsureRenderHook()
   if ns._textstyles_renderWrapped then return end
   if type(ns.RenderAll) == "function" then
@@ -216,6 +233,7 @@ EnsureRenderHook()
 C_Timer.After(0.05, EnsureRenderHook)
 C_Timer.After(0.5, EnsureRenderHook)
 
+-- Helper to stringify values for fingerprinting.
 local function S(x)
   local t = type(x)
   if t == "nil" then return "" end
@@ -225,6 +243,7 @@ local function S(x)
   return tostring(x) or ""
 end
 
+-- Helper to stringify color tables.
 local function ColorS(c)
   if type(c) ~= "table" then return "" end
   local r = c.r or 0
@@ -239,6 +258,7 @@ local function CenterColorS()
   return tostring(r) .. "," .. tostring(g) .. "," .. tostring(b) .. "," .. tostring(a)
 end
 
+-- Generates a fingerprint of current style settings to detect changes.
 local function StyleFingerprint()
   local db = DB()
   local f = {
@@ -253,6 +273,7 @@ local function StyleFingerprint()
   return table.concat(f, "|")
 end
 
+-- Periodically checks for style changes and triggers a refresh.
 local lastFP = StyleFingerprint()
 C_Timer.NewTicker(0.5, function()
   if InCombat() then return end

@@ -1,11 +1,14 @@
 -- ====================================
 -- \Options\Tabs\Info_Tab.lua
 -- ====================================
+-- This file creates the "Info" tab in the options panel, displaying addon information,
+-- version, and basic controls like unlocking the frame or hiding the minimap button.
 
 local addonName, ns = ...
 ns.Options = ns.Options or {}
 local O = ns.Options
 
+-- Reads the addon version from the TOC file.
 local function _readVersion()
   local v = (C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata(addonName, "Version"))
           or (GetAddOnMetadata and GetAddOnMetadata(addonName, "Version"))
@@ -28,12 +31,15 @@ local THEME = {
   rowBG       = TILE_BG,
   rowBR       = BORDER_COL,
 }
+
+-- Helper to paint a frame with a backdrop.
 local function PaintBackdrop(frame, bg, br)
   frame:SetBackdrop({ bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1 })
   frame:SetBackdropColor(unpack(bg))
   frame:SetBackdropBorderColor(unpack(br))
 end
 
+-- Checks if the minimap button is currently hidden.
 local function GetMinimapHidden()
   local addon = LibStub("AceAddon-3.0"):GetAddon("ClickableRaidBuffs", true)
   if addon and addon.minimapDB and addon.minimapDB.profile and addon.minimapDB.profile.minimap then
@@ -42,6 +48,7 @@ local function GetMinimapHidden()
   return false
 end
 
+-- Registers the Info section.
 O.RegisterSection(function(AddSection)
   AddSection("Info", function(content, Row)
     local row = Row(385)

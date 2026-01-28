@@ -1,6 +1,9 @@
 -- ====================================
 -- \Gates\MineOnly_Gate.lua
 -- ====================================
+-- Gate and utility functions for checking if buffs are cast by the player specifically.
+-- Used to track personal buffs (e.g., poisons, enchants) where only player-applied
+-- auras should be detected. The gate itself always passes; helper functions do the checks.
 
 local addonName, ns = ...
 ns = ns or {}
