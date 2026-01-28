@@ -335,6 +335,7 @@ end
 
 local recent = {}
 local function AnnounceWhitelisted(spellID, srcGUID)
+  if issecretvalue and issecretvalue(spellID) then return end
   if not RAID().enabled or IsSuppressed() then return end
   local inInst, instType = IsInInstance()
   if not inInst or (instType ~= "raid" and instType ~= "party") then return end
