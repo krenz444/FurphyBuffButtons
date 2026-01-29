@@ -1,5 +1,6 @@
 ## Interface: 110200 110205 120000
 ## Title: |cff00ccffFurphy Buff Buttons|r
+## X-Wago-ID: YK9bOVGL
 ## Notes: Displays missing raid buffs and temporary enchants, and allows you to click them to cast the buff or use the item.
 ## Author: Furphy
 ## Version: 7.1.0
