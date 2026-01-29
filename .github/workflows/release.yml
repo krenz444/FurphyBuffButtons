@@ -1,0 +1,28 @@
+name: Wago Release
+
+on:
+  # Trigger 1: Automatic Release Creation
+  # When you create a tag (e.g., v1.0.0), this creates a "Stable" release on Wago.
+  push:
+    tags:
+      - 'v*'
+  # Trigger 2: Automatic Branch Updates
+  # When you push code to main, this creates an "Alpha" release on Wago.
+  branches:
+    - main
+    - master
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necessary for the packager to generate a changelog
+
+      - name: Create Package & Upload to Wago
+        uses: BigWigsMods/packager@master
+        env:
+          # The docs specify appending the WAGO_API_TOKEN to the env variables
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
