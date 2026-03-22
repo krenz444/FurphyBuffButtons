@@ -52,15 +52,14 @@ function ns.MineOnly_UnitHasBuff(unit, idSet, nameSet, nameMode)
         return true
       end
     end, true)
-  else
+  elseif C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
     local i = 1
     while true do
-      local name, _, _, _, _, expTime, _, source, _, _, spellId = UnitAura(unit, i, "HELPFUL")
-      if not name then break end
-      local a = { name = name, spellId = spellId, expirationTime = expTime, sourceUnit = source }
+      local a = C_UnitAuras.GetAuraDataByIndex(unit, i, "HELPFUL")
+      if not a then break end
       if _auraMatchesMineOnly(a, idSet, nameSet, nameMode) then
         found = true
-        if expTime and expTime > 0 then expire = expTime end
+        if a.expirationTime and a.expirationTime > 0 then expire = a.expirationTime end
         break
       end
       i = i + 1

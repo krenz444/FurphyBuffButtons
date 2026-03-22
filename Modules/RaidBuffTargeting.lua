@@ -65,7 +65,7 @@ end
 
 -- Retrieves the localized name of a spell.
 local function GetSpellName(spellID)
-  local name = (spellID and C_Spell.GetSpellName(spellID)) or GetSpellInfo(spellID)
+  local name = spellID and C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(spellID)
   return name
 end
 

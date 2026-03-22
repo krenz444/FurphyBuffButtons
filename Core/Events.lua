@@ -17,8 +17,8 @@ f:RegisterEvent("PLAYER_UPDATE_RESTING")
 f:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 f:RegisterEvent("PLAYER_DIFFICULTY_CHANGED")
 f:RegisterEvent("UNIT_AURA")
-f:RegisterEvent("UNIT_HEALTH")
-f:RegisterEvent("UNIT_MAXHEALTH")
+-- UNIT_HEALTH/UNIT_MAXHEALTH removed: UnitHealth returns secret values in Midnight,
+-- and the Recuperate module that consumed these events is disabled.
 f:RegisterEvent("BAG_UPDATE")
 f:RegisterEvent("BAG_UPDATE_DELAYED")
 f:RegisterEvent("BAG_UPDATE_COOLDOWN")
@@ -201,36 +201,8 @@ local function on_UNIT_AURA(unit, updateInfo)
   end
 end
 
-local cleuBuf = { pending = false, timer = nil, lastRun = 0 }
--- Flushes buffered CLEU events (currently unused as CLEU is disabled)
-local function flushCLEU()
-  cleuBuf.timer = nil
-  if cleuBuf.pending then
-    cleuBuf.pending = false
-    local any = false
-    if type(ns.Healthstone_OnCombatLogEventUnfiltered) == "function" then
-      if ns.Healthstone_OnCombatLogEventUnfiltered() then any = true end
-    end
-    if type(ns.Trinkets_OnCombatLogEventUnfiltered) == "function" then
-      if ns.Trinkets_OnCombatLogEventUnfiltered() then any = true end
-    end
-    if any then armPoke(0) end
-    cleuBuf.lastRun = GetTime()
-  end
-end
-
--- Buffers CLEU events (currently unused)
-local function on_CLEU()
-  cleuBuf.pending = true
-  local dt = GetTime() - (cleuBuf.lastRun or 0)
-  if dt >= THROTTLE then
-    flushCLEU()
-  elseif not cleuBuf.timer then
-    cleuBuf.timer = C_Timer.NewTimer(THROTTLE - dt, function()
-      if not locked() then flushCLEU() else cleuBuf.timer = C_Timer.NewTimer(0.05, flushCLEU) end
-    end)
-  end
-end
+-- CLEU (COMBAT_LOG_EVENT_UNFILTERED) was removed in Midnight (12.0).
+-- All combat log event handling has been removed.
 
 local uscsBuf = { events = {}, timer = nil, lastRun = 0 }
 -- Flushes buffered UNIT_SPELLCAST_SUCCEEDED events
@@ -427,16 +399,6 @@ f:SetScript("OnEvent", function(_, event, ...)
     return
   end
 
-  if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
-    local unit = ...
-    if unit == "player" then
-      if ns._inCombat or (InCombatLockdown and InCombatLockdown()) then return end
-      if type(ns.Recuperate_Recompute) == "function" then ns.Recuperate_Recompute() end
-      armPoke(debounce)
-    end
-    return
-  end
-
   if event == "UNIT_INVENTORY_CHANGED" then
     local unit = ...
     if unit == "player" then
@@ -552,11 +514,6 @@ f:SetScript("OnEvent", function(_, event, ...)
 
   if event == "CHALLENGE_MODE_MAPS_UPDATE" then
     if type(ns.MythicPlus_OnMapsUpdate) == "function" then ns.MythicPlus_OnMapsUpdate() end
-    return
-  end
-
-  if event == "COMBAT_LOG_EVENT_UNFILTERED" then
-    on_CLEU()
     return
   end
 
