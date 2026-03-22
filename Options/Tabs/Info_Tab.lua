@@ -83,7 +83,7 @@ O.RegisterSection(function(AddSection)
     title:SetFont(THEME.fontPath(), THEME.sizeLabel() + 4, "")
     title:SetJustifyH("LEFT")
     title:SetText(
-      "NOTE:  This addon is mostly disabled in cities\n" ..
+      "NOTE:  This addon is mostlyy disabled in cities\n" ..
       "            and rested areas.  If icons are missing,\n" ..
       "            check whether you're in one of those areas.\n" ..
       "            Consumables only load inside instances."

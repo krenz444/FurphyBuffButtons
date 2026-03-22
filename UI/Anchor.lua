@@ -18,10 +18,10 @@ end
 local function ReadPoint(frame)
   local p, rel, rp, x, y = frame:GetPoint(1)
   if not p then
-    return "CENTER", "UIParent", "CENTER", 0, 0
+    return "TOP", "UIParent", "TOP", 0, -10
   end
   local relName = (rel and rel.GetName and rel:GetName()) or "UIParent"
-  return p, relName, rp or "CENTER", x or 0, y or 0
+  return p, relName, rp or "TOP", x or 0, y or 0
 end
 
 -- Applies the saved anchor position from the database.
@@ -35,14 +35,26 @@ local function ApplySavedAnchor()
   if not parent then return end
 
   local db = DB()
-  db.anchor = db.anchor or { point="CENTER", relative="UIParent", relativePoint="CENTER", x=0, y=0 }
+  db.anchor = db.anchor or { point="TOP", relative="UIParent", relativePoint="TOP", x=0, y=-60 }
+
+  -- One-time migration: convert old CENTER-based anchor to new TOP-based default
+  if db.anchor.point == "CENTER" and db.anchor.relativePoint == "CENTER" then
+    db.anchor.point = "TOP"
+    db.anchor.relativePoint = "TOP"
+    db.anchor.x = 0
+    db.anchor.y = -60
+    if db.position then
+      db.position.x = 0
+      db.position.y = -60
+    end
+  end
 
   local point, relative, relativePoint, x, y =
       db.anchor.point, db.anchor.relative, db.anchor.relativePoint, db.anchor.x, db.anchor.y
 
   parent:SetClampedToScreen(true)
   parent:ClearAllPoints()
-  parent:SetPoint(point or "CENTER", _G[relative or "UIParent"] or UIParent, relativePoint or "CENTER", x or 0, y or 0)
+  parent:SetPoint(point or "TOP", _G[relative or "UIParent"] or UIParent, relativePoint or "TOP", x or 0, y or -10)
 
   parent._fbb_anchor_applied = true
   furphyBuffCache._anchor_pending = nil
@@ -57,7 +69,7 @@ local function SaveAnchor()
   db.anchor = db.anchor or {}
   db.anchor.point         = p
   db.anchor.relative      = rel or "UIParent"
-  db.anchor.relativePoint = rp or "CENTER"
+  db.anchor.relativePoint = rp or "TOP"
   db.anchor.x             = x or 0
   db.anchor.y             = y or 0
 end

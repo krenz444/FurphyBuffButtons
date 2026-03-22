@@ -11,14 +11,14 @@ local function RAID()
   local d = DB()
   d.raidAnnouncer = d.raidAnnouncer or {}
   local r = d.raidAnnouncer
-  -- r.enabled = (r.enabled ~= false)
-  r.enabled = false -- Alerts disabled for now
+  r.enabled = (r.enabled ~= false)
   r.customText = r.customText or {}
   r.anchor = r.anchor or { x=0, y=180 }
   r.soundName = r.soundName or DefaultSoundName()
   r.fontName = r.fontName or (ns.Options and ns.Options.GetDefault and ns.Options.GetDefault("fontName"))
   r.fontSize = (r.fontSize and r.fontSize > 0) and r.fontSize or 60
   r.fontColor = r.fontColor or { r=1, g=1, b=1 }
+  r.disableInCombat = (r.disableInCombat == true)
   r.period    = tonumber(r.period)    or 0.75
   r.amplitude = tonumber(r.amplitude) or 50
   r.duration  = tonumber(r.duration)  or 4
@@ -114,21 +114,18 @@ local function FreeMessage(f)
 end
 
 local function IsSuppressed()
-  -- Check if player is dead (player unit is never secret)
-  if UnitIsDeadOrGhost("player") then return true end
+  local dead = UnitIsDeadOrGhost("player")
+  if issecretvalue and issecretvalue(dead) then dead = false end
+  if dead then return true end
 
-  -- Always disable during combat
-  if InCombatLockdown() then return true end
+  local r = RAID()
+  if r.disableInCombat then
+    if InCombatLockdown() then return true end
 
-  -- Check if in encounter
-  if IsEncounterInProgress and IsEncounterInProgress() then return true end
-
-  -- Check if in active Mythic+ dungeon (timer started)
-  if C_ChallengeMode and C_ChallengeMode.GetActiveKeystoneInfo then
-    local _, _, _, _, _, _, _, activeTime = C_ChallengeMode.GetActiveKeystoneInfo()
-    if activeTime then return true end -- Timer is running, suppress alerts
+    local inEncounter = IsEncounterInProgress and IsEncounterInProgress()
+    if issecretvalue and issecretvalue(inEncounter) then inEncounter = false end
+    if inEncounter then return true end
   end
-
   return false
 end
 
@@ -305,7 +302,7 @@ function ns.RaidAnnouncer_ToggleMover(show)
 end
 
 local function IsGroupUnit(u)
-  -- Unit tokens themselves are never secret, only the data they return
+  if issecretvalue and issecretvalue(u) then return false end
   if u == "player" then return true end
   if u and (string.match(u, "^party%d+$") or string.match(u, "^raid%d+$")) then return true end
   return false
@@ -344,29 +341,18 @@ local function FlushQueue()
 end
 
 local recent = {}
-local function AnnounceWhitelisted(unit, spellID, srcGUID)
+local function AnnounceWhitelisted(spellID, srcGUID)
+  if issecretvalue and issecretvalue(spellID) then return end
   if not RAID().enabled or IsSuppressed() then return end
 
-  -- Check if we're in a group instance (raid or party)
   local inInst, instType = IsInInstance()
+  if issecretvalue and issecretvalue(inInst) then inInst = false end
+  if issecretvalue and issecretvalue(instType) then instType = "none" end
+
   if not inInst or (instType ~= "raid" and instType ~= "party") then return end
 
-  -- According to Midnight API (Patch 12.0), spellID becomes secret when
-  -- SecretWhenUnitSpellCastRestricted predicate is active
-  -- Check if spellcast restrictions are active
-  if C_Secrets and C_Secrets.ShouldUnitSpellCastBeSecret and C_Secrets.ShouldUnitSpellCastBeSecret(unit, spellID) then
-    return -- Spellcast data is restricted, cannot process
-  end
-
-  -- Also check if the spellID itself is secret (fallback check)
-  -- We can't use secret values as table keys
-  if issecretvalue and issecretvalue(spellID) then return end
-
   local key = SPELL_TO_KEY[spellID]; if not key then return end
-
-  -- Throttle by GUID if available and accessible (not secret)
-  -- According to Midnight API, we can't use secret values as table keys
-  if srcGUID and not (issecretvalue and issecretvalue(srcGUID)) then
+  if srcGUID then
     local t = GetTime()
     recent[srcGUID] = recent[srcGUID] or {}
     local last = recent[srcGUID][spellID]
@@ -385,31 +371,19 @@ end
 local function HandleCast(unit, spellID)
   if not IsGroupUnit(unit) then return end
 
-  -- Get unit GUID for throttling
-  -- According to Midnight API, GUIDs may be secret in some cases
-  -- We can still pass them to functions, just can't inspect them
+  -- Handle secret values for unit GUID
   local guid = UnitGUID(unit)
+  if issecretvalue and issecretvalue(guid) then
+    guid = nil -- Fallback to no GUID if secret, might affect throttling but allows announcement
+  end
 
-  AnnounceWhitelisted(unit, spellID, guid)
-end
-
--- Public function called by Events.lua for UNIT_SPELLCAST_SENT
--- This event only fires for "player" and spellID is never secret
-function ns.Alerts_OnSpellCastSent(unit, spellID)
-  if unit ~= "player" then return end
-
-  -- Get player GUID for throttling
-  local guid = UnitGUID("player")
-
-  -- Call the main announce function
-  -- Since spellID from UNIT_SPELLCAST_SENT is never secret, this will work reliably
-  AnnounceWhitelisted(unit, spellID, guid)
+  AnnounceWhitelisted(spellID, guid)
 end
 
 local f = CreateFrame("Frame")
 f:RegisterEvent("PLAYER_LOGIN")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
--- f:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED") -- Disabled for now
+f:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 f:SetScript("OnEvent", function(_, ev, arg1, arg2, arg3)
   if ev == "PLAYER_LOGIN" then
     EnsureHolder(); BuildSpellMap()
@@ -423,7 +397,7 @@ f:SetScript("OnEvent", function(_, ev, arg1, arg2, arg3)
       holder._osc:SetPoint("CENTER", holder, "CENTER", 0, 0)
     end
   elseif ev == "UNIT_SPELLCAST_SUCCEEDED" then
-    -- local unit, spellID = arg1, arg3
-    -- HandleCast(unit, spellID)
+    local unit, spellID = arg1, arg3
+    HandleCast(unit, spellID)
   end
 end)

@@ -6,13 +6,16 @@ FurphyBuffData = FurphyBuffData or {}
 
 FurphyBuffData["ANNOUNCER"] = {
   FEAST = {
-    spellID = { 457285, 455960, 457487, 457283, 462212, 457302, 462211, 462213 },
+    spellID = { 457285, 455960, 457487, 457283, 462212, 457302, 462211, 462213,
+                1259659, 1259658, 1259657, 1237104,         -- Midnight feasts
+                1278895, 1278929, 1278909 },                -- Midnight hearty feasts
     text   = "Feast Down",
 	label  = "Feasts",
   },
 
   CAULDRON = {
-    spellID = { 433294, 433293, 433292, 432879, 432878, 432877 },
+    spellID = { 433294, 433293, 433292, 432879, 432878, 432877,
+                1240019 },                                   -- Midnight Flask Cauldron
     text   = "Cauldron Down",
 	label  = "Cauldron",
   },

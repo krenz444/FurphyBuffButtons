@@ -1,0 +1,242 @@
+{
+  "FOOD": {
+    "900001": {"name": "Hearty Silvermoon Parade", "icon": 133943, "minLevel": 80, "topLbl": "Feast", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900002": {"name": "Silvermoon Parade", "icon": 133943, "minLevel": 80, "topLbl": "Feast", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900003": {"name": "Hearty Harandar Celebration", "icon": 133943, "minLevel": 80, "topLbl": "Feast", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900004": {"name": "Harandar Celebration", "icon": 133943, "minLevel": 80, "topLbl": "Feast", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900005": {"name": "Hearty Quel'dorei Medley", "icon": 133943, "minLevel": 80, "topLbl": "Feast", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900006": {"name": "Quel'dorei Medley", "icon": 133943, "minLevel": 80, "topLbl": "Feast", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900007": {"name": "Hearty Blooming Feast", "icon": 133943, "minLevel": 80, "topLbl": "Feast", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900008": {"name": "Blooming Feast", "icon": 133943, "minLevel": 80, "topLbl": "Feast", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900009": {"name": "Hearty Royal Roast", "icon": 133943, "minLevel": 80, "topLbl": "Primary", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900010": {"name": "Royal Roast", "icon": 133943, "minLevel": 80, "topLbl": "Primary", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900011": {"name": "Hearty Impossibly Royal Roast", "icon": 133943, "minLevel": 80, "topLbl": "Primary", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900012": {"name": "Impossibly Royal Roast", "icon": 133943, "minLevel": 80, "topLbl": "Primary", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900013": {"name": "Hearty Twilight Angler's Medley", "icon": 133943, "minLevel": 80, "topLbl": "Primary", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900014": {"name": "Twilight Angler's Medley", "icon": 133943, "minLevel": 80, "topLbl": "Primary", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900015": {"name": "Hearty Spellfire Filet", "icon": 133943, "minLevel": 80, "topLbl": "Primary", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900016": {"name": "Spellfire Filet", "icon": 133943, "minLevel": 80, "topLbl": "Primary", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900017": {"name": "Hearty Mana-Infused Stew", "icon": 133943, "minLevel": 80, "topLbl": "Primary", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900018": {"name": "Mana-Infused Stew", "icon": 133943, "minLevel": 80, "topLbl": "Primary", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900019": {"name": "Hearty Bloom Skewers", "icon": 133943, "minLevel": 80, "topLbl": "Primary", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900020": {"name": "Bloom Skewers", "icon": 133943, "minLevel": 80, "topLbl": "Primary", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900021": {"name": "Hearty Flora Frenzy", "icon": 133943, "minLevel": 80, "topLbl": "H Stat", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900022": {"name": "Flora Frenzy", "icon": 133943, "minLevel": 80, "topLbl": "H Stat", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900023": {"name": "Hearty Champion's Bento", "icon": 133943, "minLevel": 80, "topLbl": "H Stat", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900024": {"name": "Champion's Bento", "icon": 133943, "minLevel": 80, "topLbl": "H Stat", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900025": {"name": "Hearty Warped Wise Wings", "icon": 133943, "minLevel": 80, "topLbl": "Mast", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900026": {"name": "Warped Wise Wings", "icon": 133943, "minLevel": 80, "topLbl": "Mast", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900027": {"name": "Hearty Glitter Skewers", "icon": 133943, "minLevel": 80, "topLbl": "Mast", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900028": {"name": "Glitter Skewers", "icon": 133943, "minLevel": 80, "topLbl": "Mast", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900029": {"name": "Hearty Void-Kissed Fish Rolls", "icon": 133943, "minLevel": 80, "topLbl": "Vers", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900030": {"name": "Void-Kissed Fish Rolls", "icon": 133943, "minLevel": 80, "topLbl": "Vers", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900031": {"name": "Hearty Buttered Root Crab", "icon": 133943, "minLevel": 80, "topLbl": "Vers", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900032": {"name": "Buttered Root Crab", "icon": 133943, "minLevel": 80, "topLbl": "Vers", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900033": {"name": "Hearty Braised Blood Hunter", "icon": 133943, "minLevel": 80, "topLbl": "Vers", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900034": {"name": "Braised Blood Hunter", "icon": 133943, "minLevel": 80, "topLbl": "Vers", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900035": {"name": "Hearty Sun-Seared Lumifin", "icon": 133943, "minLevel": 80, "topLbl": "Crit", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900036": {"name": "Sun-Seared Lumifin", "icon": 133943, "minLevel": 80, "topLbl": "Crit", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900037": {"name": "Hearty Arcano Cutlets", "icon": 133943, "minLevel": 80, "topLbl": "Crit", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900038": {"name": "Arcano Cutlets", "icon": 133943, "minLevel": 80, "topLbl": "Crit", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900039": {"name": "Hearty Tasty Smoked Tetra", "icon": 133943, "minLevel": 80, "topLbl": "Crit", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900040": {"name": "Tasty Smoked Tetra", "icon": 133943, "minLevel": 80, "topLbl": "Crit", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900041": {"name": "Hearty Null And Void Plate", "icon": 133943, "minLevel": 80, "topLbl": "Haste", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900042": {"name": "Null And Void Plate", "icon": 133943, "minLevel": 80, "topLbl": "Haste", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900043": {"name": "Hearty Fel-Kissed Filet", "icon": 133943, "minLevel": 80, "topLbl": "Haste", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900044": {"name": "Fel-Kissed Filet", "icon": 133943, "minLevel": 80, "topLbl": "Haste", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900045": {"name": "Hearty Crimson Calamari", "icon": 133943, "minLevel": 80, "topLbl": "Haste", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900046": {"name": "Crimson Calamari", "icon": 133943, "minLevel": 80, "topLbl": "Haste", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900047": {"name": "Hearty Sunwell Delight", "icon": 133943, "minLevel": 80, "topLbl": "Vers / Haste", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900048": {"name": "Sunwell Delight", "icon": 133943, "minLevel": 80, "topLbl": "Vers / Haste", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900049": {"name": "Hearty Quick Sandwich", "icon": 133943, "minLevel": 80, "topLbl": "Vers / Haste", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900050": {"name": "Quick Sandwich", "icon": 133943, "minLevel": 80, "topLbl": "Vers / Haste", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900051": {"name": "Hearty Hearthflame Supper", "icon": 133943, "minLevel": 80, "topLbl": "Crit / Haste", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900052": {"name": "Hearthflame Supper", "icon": 133943, "minLevel": 80, "topLbl": "Crit / Haste", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900053": {"name": "Hearty Portable Snack", "icon": 133943, "minLevel": 80, "topLbl": "Crit / Haste", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900054": {"name": "Portable Snack", "icon": 133943, "minLevel": 80, "topLbl": "Crit / Haste", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900055": {"name": "Hearty Fried Bloomtail", "icon": 133943, "minLevel": 80, "topLbl": "Mast / Vers", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900056": {"name": "Fried Bloomtail", "icon": 133943, "minLevel": 80, "topLbl": "Mast / Vers", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900057": {"name": "Hearty Silvermoon Standard", "icon": 133943, "minLevel": 80, "topLbl": "Mast / Vers", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900058": {"name": "Silvermoon Standard", "icon": 133943, "minLevel": 80, "topLbl": "Mast / Vers", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900059": {"name": "Hearty Eversong Pudding", "icon": 133943, "minLevel": 80, "topLbl": "Mast / Crit", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900060": {"name": "Eversong Pudding", "icon": 133943, "minLevel": 80, "topLbl": "Mast / Crit", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900061": {"name": "Hearty Forager's Medley", "icon": 133943, "minLevel": 80, "topLbl": "Mast / Crit", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900062": {"name": "Forager's Medley", "icon": 133943, "minLevel": 80, "topLbl": "Mast / Crit", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900063": {"name": "Hearty Bloodthistle-Wrapped Cutlets", "icon": 133943, "minLevel": 80, "topLbl": "Mast / Haste", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900064": {"name": "Bloodthistle-Wrapped Cutlets", "icon": 133943, "minLevel": 80, "topLbl": "Mast / Haste", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900065": {"name": "Hearty Farstrider Rations", "icon": 133943, "minLevel": 80, "topLbl": "Mast / Haste", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900066": {"name": "Farstrider Rations", "icon": 133943, "minLevel": 80, "topLbl": "Mast / Haste", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900067": {"name": "Hearty Wise Tails", "icon": 133943, "minLevel": 80, "topLbl": "Crit / Vers", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900068": {"name": "Wise Tails", "icon": 133943, "minLevel": 80, "topLbl": "Crit / Vers", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]},
+    "900069": {"name": "Hearty Spiced Biscuits", "icon": 133943, "minLevel": 80, "topLbl": "Crit / Vers", "btmLbl": "", "glow": "special", "hearty": true, "gates": ["instance", "rested"]},
+    "900070": {"name": "Spiced Biscuits", "icon": 133943, "minLevel": 80, "topLbl": "Crit / Vers", "btmLbl": "", "glow": "general", "hearty": false, "gates": ["instance", "rested"]}
+  },
+  "EATING": ,
+  "WELLFED": ,
+  "PETS_HUNTER": {
+    "883": {"name": "Call Pet 1", "spellID": 883, "topLbl": "", "btmLbl": "", "gates":},
+    "83242": {"name": "Call Pet 2", "spellID": 83242, "topLbl": "", "btmLbl": "", "gates":},
+    "83243": {"name": "Call Pet 3", "spellID": 83243, "topLbl": "", "btmLbl": "", "gates":},
+    "83244": {"name": "Call Pet 4", "spellID": 83244, "topLbl": "", "btmLbl": "", "gates":},
+    "83245": {"name": "Call Pet 5", "spellID": 83245, "topLbl": "", "btmLbl": "", "gates":},
+    "982": {"name": "Revive Pet", "spellID": 982, "topLbl": "Revive", "btmLbl": "", "gates":}
+  },
+  "PETS_DEATHKNIGHT": {
+    "46584": {"name": "Raise Dead", "spellID": 46584, "topLbl": "", "btmLbl": "", "gates":}
+  },
+  "PETS_WARLOCK": {
+    "688": {"name": "Summon Imp", "spellID": 688, "topLbl": "", "btmLbl": "", "gates":},
+    "697": {"name": "Summon Voidwalker", "spellID": 697, "topLbl": "", "btmLbl": "", "gates":},
+    "691": {"name": "Summon Felhunter", "spellID": 691, "topLbl": "", "btmLbl": "", "gates":},
+    "366222": {"name": "Summon Sayaad", "spellID": 366222, "topLbl": "", "btmLbl": "", "gates":},
+    "30146": {"name": "Summon Felguard", "spellID": 30146, "topLbl": "", "btmLbl": "", "gates":}
+  },
+  "FLASK": {
+    "2413262": {"name": "Flask of the Shattered Sun", "icon": 5931175, "minLevel": 80, "topLbl": "Crit", "btmLbl": "", "glow": "general", "fleeting": false, "rank": 2, "buffID": , "gates": ["instance", "rested"]},
+    "2413261": {"name": "Flask of the Shattered Sun", "icon": 5931175, "minLevel": 80, "topLbl": "Crit", "btmLbl": "", "glow": "general", "fleeting": false, "rank": 1, "buffID": , "gates": ["instance", "rested"]},
+    "9000712": {"name": "Fleeting Flask of the Shattered Sun", "icon": 5931175, "minLevel": 80, "topLbl": "Crit", "btmLbl": "", "glow": "special", "fleeting": true, "rank": 2, "buffID": , "gates": ["instance", "rested"]},
+    "9000711": {"name": "Fleeting Flask of the Shattered Sun", "icon": 5931175, "minLevel": 80, "topLbl": "Crit", "btmLbl": "", "glow": "special", "fleeting": true, "rank": 1, "buffID": , "gates": ["instance", "rested"]},
+    "2413242": {"name": "Flask of the Blood Knights", "icon": 5931172, "minLevel": 80, "topLbl": "Haste", "btmLbl": "", "glow": "general", "fleeting": false, "rank": 2, "buffID": , "gates": ["instance", "rested"]},
+    "2413241": {"name": "Flask of the Blood Knights", "icon": 5931172, "minLevel": 80, "topLbl": "Haste", "btmLbl": "", "glow": "general", "fleeting": false, "rank": 1, "buffID": , "gates": ["instance", "rested"]},
+    "9000722": {"name": "Fleeting Flask of the Blood Knights", "icon": 5931172, "minLevel": 80, "topLbl": "Haste", "btmLbl": "", "glow": "special", "fleeting": true, "rank": 2, "buffID": , "gates": ["instance", "rested"]},
+    "9000721": {"name": "Fleeting Flask of the Blood Knights", "icon": 5931172, "minLevel": 80, "topLbl": "Haste", "btmLbl": "", "glow": "special", "fleeting": true, "rank": 1, "buffID": , "gates": ["instance", "rested"]},
+    "2413222": {"name": "Flask of the Magisters", "icon": 5931174, "minLevel": 80, "topLbl": "Mast", "btmLbl": "", "glow": "general", "fleeting": false, "rank": 2, "buffID": , "gates": ["instance", "rested"]},
+    "2413221": {"name": "Flask of the Magisters", "icon": 5931174, "minLevel": 80, "topLbl": "Mast", "btmLbl": "", "glow": "general", "fleeting": false, "rank": 1, "buffID": , "gates": ["instance", "rested"]},
+    "9000732": {"name": "Fleeting Flask of the Magisters", "icon": 5931174, "minLevel": 80, "topLbl": "Mast", "btmLbl": "", "glow": "special", "fleeting": true, "rank": 2, "buffID": , "gates": ["instance", "rested"]},
+    "9000731": {"name": "Fleeting Flask of the Magisters", "icon": 5931174, "minLevel": 80, "topLbl": "Mast", "btmLbl": "", "glow": "special", "fleeting": true, "rank": 1, "buffID": , "gates": ["instance", "rested"]},
+    "2413202": {"name": "Flask of Thalassian Resistance", "icon": 5931170, "minLevel": 80, "topLbl": "Vers", "btmLbl": "", "glow": "general", "fleeting": false, "rank": 2, "buffID": , "gates": ["instance", "rested"]},
+    "2413201": {"name": "Flask of Thalassian Resistance", "icon": 5931170, "minLevel": 80, "topLbl": "Vers", "btmLbl": "", "glow": "general", "fleeting": false, "rank": 1, "buffID": , "gates": ["instance", "rested"]},
+    "9000742": {"name": "Fleeting Flask of Thalassian Resistance", "icon": 5931170, "minLevel": 80, "topLbl": "Vers", "btmLbl": "", "glow": "special", "fleeting": true, "rank": 2, "buffID": , "gates": ["instance", "rested"]},
+    "9000741": {"name": "Fleeting Flask of Thalassian Resistance", "icon": 5931170, "minLevel": 80, "topLbl": "Vers", "btmLbl": "", "glow": "special", "fleeting": true, "rank": 1, "buffID": , "gates": ["instance", "rested"]},
+    "900075": {"name": "Vicious Thalassian Flask of Honor", "icon": 133943, "minLevel": 80, "topLbl": "Honor", "btmLbl": "", "glow": "special", "fleeting": false, "rank": null, "buffID": , "gates": ["pvp", "rested"]}
+  },
+  "ALERTS": {
+    "FEAST": {"spellID": , "text": "Feast Down", "label": "Feasts"},
+    "CAULDRON": {"spellID": , "text": "Cauldron Down", "label": "Cauldron"},
+    "HEALTHSTONES": {"spellID": , "text": "Soulwell Down", "label": "Healthstone"},
+    "JEEVES": {"spellID": , "text": "Jeeves Down", "label": "Jeeves"},
+    "REPAIR": {"spellID": , "text": "Repair Bot Down", "label": "Repair Bot"},
+    "SUMMON": {"spellID": , "text": "Summoning Stone Down", "label": "Summoning Stone"},
+    "MAGE": {"spellID": , "text": "Mage Table Down", "label": "Mage Table"},
+    "MAILBOX": {"spellID": , "text": "Mailbox Down", "label": "Mailbox"},
+    "PORTAL": {"spellID": , "text": "Portal Open", "label": "Portals"}
+  },
+  "OFF_HAND": {
+    "9000762": {"name": "Refulgent Whetstone", "weaponType": "BLADED", "dual": true, "rank": 2, "icon": 3622195, "topLbl": "+AP", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000761": {"name": "Refulgent Whetstone", "weaponType": "BLADED", "dual": true, "rank": 1, "icon": 3622195, "topLbl": "+AP", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000772": {"name": "Refulgent Weightstone", "weaponType": "BLUNT", "dual": true, "rank": 2, "icon": 3622199, "topLbl": "+AP", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000771": {"name": "Refulgent Weightstone", "weaponType": "BLUNT", "dual": true, "rank": 1, "icon": 3622199, "topLbl": "+AP", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000782": {"name": "Thalassian Phoenix Oil", "weaponType": "NEUTRAL", "dual": true, "rank": 2, "icon": 609892, "topLbl": "Crit/Haste", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000781": {"name": "Thalassian Phoenix Oil", "weaponType": "NEUTRAL", "dual": true, "rank": 1, "icon": 609892, "topLbl": "Crit/Haste", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000792": {"name": "Smuggler's Enchanted Edge", "weaponType": "NEUTRAL", "dual": true, "rank": 2, "icon": 609897, "topLbl": "Damage", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000791": {"name": "Smuggler's Enchanted Edge", "weaponType": "NEUTRAL", "dual": true, "rank": 1, "icon": 609897, "topLbl": "Damage", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000802": {"name": "Oil of Dawn", "weaponType": "NEUTRAL", "dual": true, "rank": 2, "icon": 609896, "topLbl": "Absorb", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000801": {"name": "Oil of Dawn", "weaponType": "NEUTRAL", "dual": true, "rank": 1, "icon": 609896, "topLbl": "Absorb", "btmLbl": null, "gates": ["instance", "rested"]}
+  },
+  "MAIN_HAND": {
+    "9000762": {"name": "Refulgent Whetstone", "weaponType": "BLADED", "dual": true, "rank": 2, "icon": 3622195, "topLbl": "+AP", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000761": {"name": "Refulgent Whetstone", "weaponType": "BLADED", "dual": true, "rank": 1, "icon": 3622195, "topLbl": "+AP", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000772": {"name": "Refulgent Weightstone", "weaponType": "BLUNT", "dual": true, "rank": 2, "icon": 3622199, "topLbl": "+AP", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000771": {"name": "Refulgent Weightstone", "weaponType": "BLUNT", "dual": true, "rank": 1, "icon": 3622199, "topLbl": "+AP", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000782": {"name": "Thalassian Phoenix Oil", "weaponType": "NEUTRAL", "dual": true, "rank": 2, "icon": 609892, "topLbl": "Crit/Haste", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000781": {"name": "Thalassian Phoenix Oil", "weaponType": "NEUTRAL", "dual": true, "rank": 1, "icon": 609892, "topLbl": "Crit/Haste", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000792": {"name": "Smuggler's Enchanted Edge", "weaponType": "NEUTRAL", "dual": true, "rank": 2, "icon": 609897, "topLbl": "Damage", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000791": {"name": "Smuggler's Enchanted Edge", "weaponType": "NEUTRAL", "dual": true, "rank": 1, "icon": 609897, "topLbl": "Damage", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000802": {"name": "Oil of Dawn", "weaponType": "NEUTRAL", "dual": true, "rank": 2, "icon": 609896, "topLbl": "Absorb", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000801": {"name": "Oil of Dawn", "weaponType": "NEUTRAL", "dual": true, "rank": 1, "icon": 609896, "topLbl": "Absorb", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000812": {"name": "Smuggler's Lynxeye", "weaponType": "RANGED", "dual": false, "rank": 2, "icon": 133943, "topLbl": "Mast", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000811": {"name": "Smuggler's Lynxeye", "weaponType": "RANGED", "dual": false, "rank": 1, "icon": 133943, "topLbl": "Mast", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000822": {"name": "Farstrider's Hawkeye", "weaponType": "RANGED", "dual": false, "rank": 2, "icon": 133943, "topLbl": "Crit", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000821": {"name": "Farstrider's Hawkeye", "weaponType": "RANGED", "dual": false, "rank": 1, "icon": 133943, "topLbl": "Crit", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000832": {"name": "Laced Zoomshots", "weaponType": "RANGED", "dual": false, "rank": 2, "icon": 133943, "topLbl": "Damage", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000831": {"name": "Laced Zoomshots", "weaponType": "RANGED", "dual": false, "rank": 1, "icon": 133943, "topLbl": "Damage", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000842": {"name": "Weighted Boomshots", "weaponType": "RANGED", "dual": false, "rank": 2, "icon": 133943, "topLbl": "Damage", "btmLbl": null, "gates": ["instance", "rested"]},
+    "9000841": {"name": "Weighted Boomshots", "weaponType": "RANGED", "dual": false, "rank": 1, "icon": 133943, "topLbl": "Damage", "btmLbl": null, "gates": ["instance", "rested"]}
+  },
+  "TRINKETS": {
+    "190958": {"name": "So'Leah's Secret Technique", "itemID": 190958, "buffID": , "targetBuffID": 386510, "check": "player", "target": "", "topLbl": "Trinket", "btmLbl": "Target", "count": 1, "type": "trinket", "gates": ["group", "rested"], "mineOnly": true},
+    "178742": {"name": "Bottled Flayedwing Toxin", "itemID": 178742, "buffID": , "check": "player", "target": "player", "topLbl": "Trinket", "btmLbl": "", "mineOnly": true, "type": "trinket", "gates": ["group", "rested"]}
+  },
+  "RAID_BUFFS_BY_CLASS": {
+    "WARRIOR": {
+      "6673": {"name": "Battle Shout", "spellID": 6673, "buffID": , "check": "raid", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested", "range"]},
+      "386164": {"name": "Battle Stance", "spellID": 386164, "buffID": , "check": "player", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested"], "infinite": true},
+      "386196": {"name": "Berserker Stance", "spellID": 386196, "buffID": , "check": "player", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested"], "infinite": true},
+      "386208": {"name": "Defensive Stance", "spellID": 386208, "buffID": , "check": "player", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested"], "infinite": true}
+    },
+    "PALADIN": {
+      "32223": {"name": "Crusader Aura", "spellID": 32223, "buffID": , "check": "player", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested"], "infinite": true},
+      "317920": {"name": "Concentration Aura", "spellID": 317920, "buffID": , "check": "player", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested"], "infinite": true},
+      "465": {"name": "Devotion Aura", "spellID": 465, "buffID": , "check": "player", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested"], "infinite": true},
+      "1465": {"name": "Devotion Aura", "spellID": 465, "buffID": , "check": "player", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["instance"], "infinite": true}
+    },
+    "HUNTER": {},
+    "ROGUE": {},
+    "PRIEST": {
+      "21562": {"name": "Power Word: Fortitude", "spellID": 21562, "buffID": , "check": "raid", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested", "range"]},
+      "232698": {"name": "Shadowform", "spellID": 232698, "buffID": , "check": "player", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested"]}
+    },
+    "DEATHKNIGHT": {},
+    "SHAMAN": {
+      "462854": {"name": "Skyfury", "spellID": 462854, "buffID": , "check": "raid", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested", "range"]}
+    },
+    "MAGE": {
+      "1459": {"name": "Arcane Intellect", "spellID": 1459, "buffID": , "check": "raid", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested", "range"]},
+      "205022": {"name": "Arcane Familiar", "spellID": 1459, "buffID": , "check": "player", "target": "player", "topLbl": "", "btmLbl": "", "spellToCast": 1459, "gates": ["rested"], "icon": 1041232, "isKnown": 205022}
+    },
+    "WARLOCK": {
+      "20707": {"name": "Soulstone", "spellID": 20707, "buffID": , "check": "raid", "target": "target", "topLbl": "", "btmLbl": "Target", "count": 1, "gates": ["instance", "rested", "group", "mineOnly"]},
+      "108503": {"name": "Grimoire of Sacrifice", "spellID": 108503, "buffID": , "check": "player", "target": "player", "topLbl": "", "btmLbl": "", "gates":}
+    },
+    "MONK": {},
+    "DRUID": {
+      "1126": {"name": "Mark of the Wild", "spellID": 1126, "buffID": , "check": "raid", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested", "range"]},
+      "474750": {"name": "Symbiotic Relationship", "spellID": 474750, "buffID": , "check": "raid", "target": "", "topLbl": "", "btmLbl": "Target", "count": 1, "nameMode": true, "gates": ["rested", "group", "mineOnly"]}
+    },
+    "DEMONHUNTER": {},
+    "EVOKER": {
+      "364342": {"name": "Blessing of the Bronze", "spellID": 364342, "buffID": , "check": "raid", "target": "player", "topLbl": "", "btmLbl": "", "gates": ["rested", "range"], "nameMode": true},
+      "403264": {"name": "Black Attunement", "spellID": 403264, "buffID": , "check": "player", "target": "player", "topLbl": "+HP", "btmLbl": "", "gates": ["rested"], "infinite": true},
+      "403265": {"name": "Bronze Attunement", "spellID": 403265, "buffID": , "check": "player", "target": "player", "topLbl": "+Speed", "btmLbl": "", "gates": ["rested"], "infinite": true},
+      "369459": {"name": "Source of Magic", "spellID": 369459, "buffID": , "check": "raid", "target": "", "topLbl": "", "btmLbl": "Target", "count": 1, "gates": ["instance", "rested", "group", "mineOnly"], "role": "healer"},
+      "412710": {"name": "Timelessness", "spellID": 412710, "buffID": , "check": "raid", "target": "", "topLbl": "", "btmLbl": "Target", "count": 1, "gates": ["instance", "rested", "group", "mineOnly"]}
+    }
+  },
+  "RECUPERATE": {
+    "1231411": {"name": "Recuperate", "spellID": 1231411, "icon": 136074, "topLbl": "Heal", "btmLbl": "", "gates": ["rested"], "glow": "special"}
+  },
+  "AUGMENT_RUNE": {
+    "900085": {"name": "Void-Touched Augment Rune", "buffID": , "icon": 1345086, "topLbl": "", "btmLbl": "", "gates": ["instance", "rested"], "consumable": true},
+    "900086": {"name": "Ethereal Augment Rune", "buffID": , "icon": 3566863, "topLbl": "", "btmLbl": "", "gates": ["rested"], "exclude": , "qty": false, "consumable": false}
+  },
+  "ROGUE_POISONS": {
+    "2823": {"name": "Deadly Poison", "spellID": 2823, "buffID": , "cat": "LETHAL", "topLbl": "", "btmLbl": ""},
+    "315584": {"name": "Instant Poison", "spellID": 315584, "buffID": , "cat": "LETHAL", "topLbl": "", "btmLbl": ""},
+    "8679": {"name": "Wound Poison", "spellID": 8679, "buffID": , "cat": "LETHAL", "topLbl": "", "btmLbl": ""},
+    "381664": {"name": "Amplifying Poison", "spellID": 381664, "buffID": , "cat": "LETHAL", "topLbl": "", "btmLbl": ""},
+    "3408": {"name": "Crippling Poison", "spellID": 3408, "buffID": , "cat": "NONLETHAL", "topLbl": "", "btmLbl": ""},
+    "5761": {"name": "Numbing Poison", "spellID": 5761, "buffID": , "cat": "NONLETHAL", "topLbl": "", "btmLbl": ""},
+    "381637": {"name": "Atrophic Poison", "spellID": 381637, "buffID": , "cat": "NONLETHAL", "topLbl": "", "btmLbl": ""}
+  },
+  "COSMETIC": {
+    "8529": {"name": "Noggenfogger Elixir", "itemID": 8529, "buffID": },
+    "124640": {"name": "Inky Black Potion", "itemID": 124640, "buffID": , "gates": ["notMap", {"notMap": 2215}]},
+    "204370": {"name": "Stinky Bright Potion", "itemID": 204370, "buffID": , "gates": ["notMap", {"notMap": 2215}]},
+    "197767": {"name": "Blubbery Muffin", "itemID": 197767, "buffID": },
+    "2460": {"name": "Elixir of Tongues", "itemID": 2460, "buffID": },
+    "6657": {"name": "Savory Deviate Delight", "itemID": 6657, "buffID": }
+  },
+  "SHAMAN_SHIELDS": {
+    "192106": {"name": "Lightning Shield", "spellID": 192106, "buffID": , "check": "player", "target": "player", "topLbl": "", "btmLbl": ""},
+    "52127": {"name": "Water Shield", "spellID": 52127, "buffID": , "check": "player", "target": "player", "topLbl": "", "btmLbl": ""},
+    "974": {"name": "Earth Shield", "spellID": 974, "buffOnOthers": 974, "buffOnSelf": 383648, "check": "raid", "target": "target", "topLbl": "", "btmLbl": "Target", "gates": "mineOnly"}
+  },
+  "CASTABLE_WEAPON_ENCHANTS": {
+    "318038": {"name": "Flametongue Weapon", "icon": 135814, "spellID": 318038, "wepEnchID": , "check": "player", "slotid": null, "topLbl": "", "btmLbl": "", "gates": ["rested"]},
+    "33757": {"name": "Windfury Weapon", "icon": 462329, "spellID": 33757, "wepEnchID": , "check": "player", "slotid": 16, "topLbl": "", "btmLbl": "", "gates": ["rested"]},
+    "382021": {"name": "Earthliving Weapon", "icon": 237578, "spellID": 382021, "wepEnchID": , "check": "player", "slotid": 16, "topLbl": "", "btmLbl": "", "gates": ["rested"]},
+    "462757": {"name": "Thunderstrike Ward", "icon": 5975854, "spellID": 462757, "wepEnchID": , "check": "player", "slotid": 17, "wepType": "shield", "topLbl": "", "btmLbl": "", "gates": ["rested"]},
+    "433568": {"name": "Rite of Sanctification", "icon": 237172, "spellID": 433568, "wepEnchID": , "check": "player", "slotid": 16, "topLbl": "", "btmLbl": "", "gates": ["rested"]},
+    "433583": {"name": "Rite of Adjuration", "icon": 237051, "spellID": 433583, "wepEnchID": , "check": "player", "slotid": 16, "topLbl": "", "btmLbl": "", "gates": ["rested"]}
+  }
+}

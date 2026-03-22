@@ -13,6 +13,6 @@ O.TAB_ORDER = {
   "Layout",
   "Thresholds",
   "Ignore",
-  -- "Alerts", -- Hidden for now
+  "Alerts",
   "Customize",
 }

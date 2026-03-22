@@ -45,7 +45,7 @@ O.AUTHOR_LABEL_Y           = O.AUTHOR_LABEL_Y or -55
 
 -- Tab constants
 O.TAB_HEIGHT               = O.TAB_HEIGHT or 24
-O.TAB_COUNT				         = O.TAB_COUNT or 5 -- Reduced from 6 to 5 since Alerts is hidden
+O.TAB_COUNT				         = O.TAB_COUNT or 6
 
 -- Helper to get font path by name
 local function GetFontPathByName(name)
@@ -329,8 +329,6 @@ local function Build()
     if type(builder) == "function" then
       builder(function(sectionTitle, innerBuilder)
         if sectionTitle and sectionTitle:lower():find("healthstone") then return end
-        -- Skip Alerts tab if it's hidden in TabOrder
-        if sectionTitle == "Alerts" then return end
         table.insert(collected, {
           title  = sectionTitle or ("Tab "..(#collected+1)),
           build  = innerBuilder,

@@ -8,7 +8,7 @@ local addonName, ns = ...
 -- Retrieves the saved position from the database.
 local function GetPos()
     FurphyBuffButtonsDB = FurphyBuffButtonsDB or {}
-    FurphyBuffButtonsDB.position = FurphyBuffButtonsDB.position or { x = 0, y = 0 }
+    FurphyBuffButtonsDB.position = FurphyBuffButtonsDB.position or { x = 0, y = -60 }
     return FurphyBuffButtonsDB.position
 end
 
@@ -17,11 +17,18 @@ local parent = CreateFrame("Frame", addonName .. "RenderParent", UIParent)
 parent:SetFrameStrata("MEDIUM")
 do
     local pos = GetPos()
+    -- Migrate old CENTER-based position to TOP-based if needed
+    -- Old system stored positive y for "above center"; new system stores negative y from top
+    local anchor = FurphyBuffButtonsDB.anchor
+    if anchor and anchor.point == "CENTER" and anchor.relativePoint == "CENTER" then
+        -- Will be fully migrated by Anchor.lua; use a safe TOP default for now
+        pos.y = -60
+    end
     -- Defer positioning if in combat to avoid taint.
     if InCombatLockdown() or ns._combat_suspended then
-        ns._pendingPos = { x = pos.x or 0, y = pos.y or 0 }
+        ns._pendingPos = { x = pos.x or 0, y = pos.y or -60 }
     else
-        parent:SetPoint("CENTER", UIParent, "CENTER", pos.x or 0, pos.y or 0)
+        parent:SetPoint("TOP", UIParent, "TOP", pos.x or 0, pos.y or -60)
     end
 end
 parent:SetMovable(true)
@@ -52,7 +59,7 @@ local function ApplyPosition()
         return
     end
     parent:ClearAllPoints()
-    parent:SetPoint("CENTER", UIParent, "CENTER", pos.x or 0, pos.y or 0)
+    parent:SetPoint("TOP", UIParent, "TOP", pos.x or 0, pos.y or -60)
     if ns._mover then
         ns._mover:ClearAllPoints()
         ns._mover:SetPoint("CENTER", parent, "CENTER")
@@ -136,9 +143,10 @@ function ns.ToggleMover(show)
                             cx, cy = cx/scale, cy/scale
                             local dx, dy = cx - self.startCursorX, cy - self.startCursorY
                             local newX, newY = self.startParentX + dx, self.startParentY + dy
+                            local parentH = (parent:GetHeight() or 0) / 2
                             local pos = GetPos()
-                            pos.x, pos.y = math.floor(newX - UIParent:GetWidth()/2 + 0.5),
-                                           math.floor(newY - UIParent:GetHeight()/2 + 0.5)
+                            pos.x = math.floor(newX - UIParent:GetWidth()/2 + 0.5)
+                            pos.y = math.floor((newY + parentH) - UIParent:GetHeight() + 0.5)
                             ApplyPosition()
                         end
                     end)
@@ -210,9 +218,9 @@ function ns.ToggleMover(show)
                 TeleportMover(0, pos.y or 0)
             end)
 
-            local centerVBtn = makeTextButton(centerHBtn, "Center Vertical", function()
+            local centerVBtn = makeTextButton(centerHBtn, "Reset Top", function()
                 local pos = GetPos()
-                TeleportMover(pos.x or 0, 0)
+                TeleportMover(pos.x or 0, -60)
             end)
 
             -- Helper to create arrow buttons for nudging
@@ -252,7 +260,7 @@ function ns.ToggleMover(show)
                         text = "Reset position to default?",
                         button1 = YES,
                         button2 = NO,
-                        OnAccept = function() TeleportMover(0, 0) end,
+                        OnAccept = function() TeleportMover(0, -60) end,
                         timeout = 0, whileDead = 1,
                         hideOnEscape = 1, preferredIndex = 3,
                     }
@@ -328,7 +336,7 @@ ev:SetScript("OnEvent", function(_, event)
             local p = ns._pendingPos
             ns._pendingPos = nil
             local pos = GetPos()
-            pos.x, pos.y = p.x or 0, p.y or 0
+            pos.x, pos.y = p.x or 0, p.y or -60
             ApplyPosition()
         end
         if ns._pendingRender then

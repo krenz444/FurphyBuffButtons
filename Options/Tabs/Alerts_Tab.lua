@@ -53,14 +53,14 @@ local function RAID()
   local d = DB()
   d.raidAnnouncer = d.raidAnnouncer or {}
   local r = d.raidAnnouncer
-  -- r.enabled = (r.enabled ~= false)
-  r.enabled = false -- Alerts disabled for now
+  r.enabled = (r.enabled ~= false)
   r.customText = r.customText or {}
   r.anchor = r.anchor or { x=0, y=180 }
   r.soundName = r.soundName or "Alerts: Ding Dong"
   r.fontName = r.fontName or (O.GetDefault and O.GetDefault("fontName")) or "Friz Quadrata TT"
   r.fontSize = (r.fontSize and r.fontSize > 0) and r.fontSize or 60
   r.fontColor = r.fontColor or { r=1,g=1,b=1 }
+  r.disableInCombat = (r.disableInCombat == true) and true or false
   r.period = tonumber(r.period) or 0.75
   r.amplitude = tonumber(r.amplitude) or 50
   r.duration = tonumber(r.duration) or 4
@@ -170,15 +170,12 @@ local function BuildEnableRow(content, startY, onToggle)
   cb:SetPoint("LEFT", 0, 0)
   cb:SetChecked(RAID().enabled); cb._tick:SetShown(RAID().enabled)
   cb:SetScript("OnClick", function(self)
-    -- Alerts disabled for now
-    self:SetChecked(false)
-    if self._tick then self._tick:SetShown(false) end
-    -- local on = self:GetChecked() and true or false
-    -- if self._tick then self._tick:SetShown(on) end
-    -- if onToggle then onToggle(on) end
+    local on = self:GetChecked() and true or false
+    if self._tick then self._tick:SetShown(on) end
+    if onToggle then onToggle(on) end
   end)
   local lab = left:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-  lab:SetPoint("LEFT", cb, "RIGHT", 8, 0); lab:SetText("Enable (Disabled for now)"); FS(lab, 14)
+  lab:SetPoint("LEFT", cb, "RIGHT", 8, 0); lab:SetText("Enable"); FS(lab, 14)
   local right = CreateFrame("Frame", nil, row)
   right:SetPoint("TOPLEFT", left, "TOPRIGHT", 8, 0)
   right:SetPoint("BOTTOM", row, "BOTTOM", 0, 0)
@@ -189,8 +186,18 @@ local function BuildEnableRow(content, startY, onToggle)
   unlockCB._tick = utick
   local unlockLab = right:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
   FS(unlockLab, 14); unlockLab:SetText("Unlock")
+  local combatCB = CreateFrame("CheckButton", nil, right, "BackdropTemplate")
+  combatCB:SetSize(20,20); PaintBackdrop(combatCB)
+  local ctick = combatCB:CreateTexture(nil,"ARTWORK"); ctick:SetAtlas("common-icon-checkmark", true); ctick:SetPoint("CENTER"); ctick:SetSize(16,16); ctick:Hide()
+  combatCB._tick = ctick
+  local combatLab = right:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+  FS(combatLab, 14); combatLab:SetText("Disable in Combat")
+  combatLab:ClearAllPoints()
+  combatLab:SetPoint("RIGHT", right, "RIGHT", 0, 0)
+  combatCB:ClearAllPoints()
+  combatCB:SetPoint("RIGHT", combatLab, "LEFT", -8, 0)
   unlockLab:ClearAllPoints()
-  unlockLab:SetPoint("RIGHT", right, "RIGHT", 0, 0)
+  unlockLab:SetPoint("RIGHT", combatCB, "LEFT", -16, 0)
   unlockCB:ClearAllPoints()
   unlockCB:SetPoint("RIGHT", unlockLab, "LEFT", -8, 0)
   unlockCB:SetScript("OnClick", function(self)
@@ -199,6 +206,13 @@ local function BuildEnableRow(content, startY, onToggle)
     if ns.RaidAnnouncer_ToggleMover then ns.RaidAnnouncer_ToggleMover(on) end
   end)
   ns.RaidAnnouncer_UpdateUnlockCheckbox = function(state) unlockCB:SetChecked(state and true or false); if unlockCB._tick then unlockCB._tick:SetShown(state and true or false) end end
+  local initOn = (RAID().disableInCombat == true)
+  combatCB:SetChecked(initOn); if combatCB._tick then combatCB._tick:SetShown(initOn) end
+  combatCB:SetScript("OnClick", function(self)
+    local on = self:GetChecked() and true or false
+    RAID().disableInCombat = on
+    if self._tick then self._tick:SetShown(on) end
+  end)
   return row, cb
 end
 
@@ -595,22 +609,17 @@ O.RegisterSection(function(AddSection)
     layoutMasks()
 
     local function setEnabledUI(on)
-      -- Force disable UI for now
-      on = false
-      RAID().enabled = false
-      enableCB:SetChecked(false); if enableCB._tick then enableCB._tick:SetShown(false) end
+      RAID().enabled = (on and true or false)
+      enableCB:SetChecked(on and true or false); if enableCB._tick then enableCB._tick:SetShown(on and true or false) end
       local a = on and 1 or 0.40
       for i=1,#sectionFrames do sectionFrames[i]:SetAlpha(a) end
       mask:SetShown(not on)
       headerRightMask:SetShown(not on)
     end
     enableCB:SetScript("OnClick", function(self)
-      -- Alerts disabled for now
-      self:SetChecked(false)
-      if self._tick then self._tick:SetShown(false) end
-      -- local on = self:GetChecked() and true or false
-      -- if self._tick then self._tick:SetShown(on) end
-      -- setEnabledUI(on)
+      local on = self:GetChecked() and true or false
+      if self._tick then self._tick:SetShown(on) end
+      setEnabledUI(on)
     end)
 
     setEnabledUI(RAID().enabled and true or false)

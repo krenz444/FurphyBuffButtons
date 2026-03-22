@@ -98,81 +98,165 @@ local function setIconTextureIfChanged(btn, tex)
   end
 end
 
--- Sets the button action (spell or item) if it has changed.
-local function setButtonActionIfChanged(btn, kind, id)
-  if btn._fbb_kind ~= kind or btn._fbb_id ~= id then
-    btn:SetAttribute("type", kind)
-    if kind == "spell" then
-      btn:SetAttribute("spell", id)
-      btn:SetAttribute("item", nil)
-    elseif kind == "item" then
-      btn:SetAttribute("item", "item:" .. id)
-      btn:SetAttribute("spell", nil)
+-- Sets the button action (macro, item, spell) if it has changed.
+local function setButtonActionIfChanged(btn, actionType, value1)
+  if btn._fbb_action_type ~= actionType or btn._fbb_action_v1 ~= value1 then
+    if actionType == "macro" then
+      btn:SetAttribute("type", "macro")
+      btn:SetAttribute("macrotext", value1)
+    elseif actionType == "item" then
+      btn:SetAttribute("type", "item")
+      btn:SetAttribute("item", "item:" .. tostring(value1))
+    elseif actionType == "spell" then
+      btn:SetAttribute("type", "spell")
+      btn:SetAttribute("spell", value1)
     else
       btn:SetAttribute("type", nil)
-      btn:SetAttribute("spell", nil)
-      btn:SetAttribute("item", nil)
     end
-    btn._fbb_kind = kind
-    btn._fbb_id = id
+    btn._fbb_action_type = actionType
+    btn._fbb_action_v1   = value1
   end
 end
 
--- Creates a new button frame.
-local function createButton(index)
-  local name = "FurphyBuffButton" .. index
-  local btn = CreateFrame("Button", name, parent, "SecureActionButtonTemplate")
-  btn:SetSize(30, 30)
-  btn:SetFrameStrata("MEDIUM")
-  btn:SetFrameLevel(10)
+-- Calculates offsets for rank overlays.
+local function knobOffsets(ks, size, defX, defY)
+  if not ks then return defX, defY end
+  local x = ks.x
+  local y = ks.y
+  if x == nil and ks.xMul then x = ks.xMul * size end
+  if y == nil and ks.yMul then y = ks.yMul * size end
+  if x == nil and ks.offsetX ~= nil then x = ks.offsetX end
+  if y == nil and ks.offsetY ~= nil then y = ks.offsetY end
+  if x == nil then x = defX end
+  if y == nil then y = defY end
+  return x, y
+end
 
-  local icon = btn:CreateTexture(nil, "BACKGROUND")
-  icon:SetAllPoints()
-  icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-  btn.icon = icon
-
-  local cd = CreateFrame("Cooldown", name .. "Cooldown", btn, "CooldownFrameTemplate")
-  cd:SetAllPoints()
-  btn.cooldown = cd
-
-  local count = btn:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
-  count:SetPoint("BOTTOMRIGHT", -2, 2)
-  btn.count = count
-
-  local timerText = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-  timerText:SetPoint("CENTER", 0, 0)
-  btn.timerText = timerText
-
-  btn:SetScript("OnEnter", function(self)
-    if self._fbb_entry then
-      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-      if self._fbb_entry.spellID then
-        GameTooltip:SetSpellByID(self._fbb_entry.spellID)
-      elseif self._fbb_entry.itemID then
-        GameTooltip:SetItemByID(self._fbb_entry.itemID)
+local _raidBuffOrderMap
+-- Gets the sort order index for a raid buff spell.
+local function GetRaidBuffOrderIndex(spellID)
+  if not _raidBuffOrderMap then
+    _raidBuffOrderMap = {}
+    if ns.GetRaidBuffOrderMap then
+      _raidBuffOrderMap = ns.GetRaidBuffOrderMap() or _raidBuffOrderMap
+    end
+    if not next(_raidBuffOrderMap) and _G.furphyBuffCache and _G.FurphyBuffData then
+      local classID = _G.furphyBuffCache.playerInfo and _G.furphyBuffCache.playerInfo.playerClassId
+      local tbl = classID and _G.FurphyBuffData[classID]
+      if tbl then
+        local keys = {}
+        for k in pairs(tbl) do if type(k)=="number" then keys[#keys+1]=k end end
+        table.sort(keys)
+        for i, k in ipairs(keys) do _raidBuffOrderMap[k] = i end
       end
-      GameTooltip:Show()
     end
-  end)
-  btn:SetScript("OnLeave", function()
-    GameTooltip:Hide()
-  end)
-
-  return btn
-end
-
--- Gets or creates a button for the given index.
-local function getButton(index)
-  if not ns.RenderFrames[index] then
-    ns.RenderFrames[index] = createButton(index)
   end
-  return ns.RenderFrames[index]
+  return _raidBuffOrderMap[spellID] or 9999
 end
 
--- Helper to get the default font.
-local function getDefaultFont()
-  if ns.GetFontPath then
-    return ns.GetFontPath("Friz Quadrata TT")
+-- Sorts items based on category priority and other criteria.
+local function SortItems(items, catPriority)
+  table.sort(items, function(a, b)
+    local ai = catPriority[a.category] or 999
+    local bi = catPriority[b.category] or 999
+    if ai ~= bi then return ai < bi end
+
+    if a.category == "PETS" and b.category == "PETS" then
+      local ah = tonumber(a.orderHint) or 1e9
+      local bh = tonumber(b.orderHint) or 1e9
+      if ah ~= bh then return ah < bh end
+      local as = a.spellID or a.itemID or 0
+      local bs = b.spellID or b.itemID or 0
+      if as ~= bs then return as < bs end
+      local af = (a.isFixed and 1 or 0)
+      local bf = (b.isFixed and 1 or 0)
+      if af ~= bf then return af < bf end
+      return false
+    end
+
+    if a.category == "RAID_BUFFS" and b.category == "RAID_BUFFS" then
+      local oa = GetRaidBuffOrderIndex(a.spellID or 0)
+      local ob = GetRaidBuffOrderIndex(b.spellID or 0)
+      if oa ~= ob then return oa < ob end
+      local as = a.spellID or 0
+      local bs = b.spellID or 0
+      if as == bs then
+        local sa = a.orderHint or 0
+        local sb = b.orderHint or 0
+        if sa ~= sb then return sa < sb end
+        if (a.isFixed and not b.isFixed) then return false end
+        if (b.isFixed and not a.isFixed) then return true end
+        return false
+      end
+      return as < bs
+    end
+
+    local ka = a.itemID or a.spellID or 0
+    local kb = b.itemID or b.spellID or 0
+    return ka < kb
+  end)
+end
+
+-- Hides all rendered icons.
+function ns.HideAllRenderedIcons()
+  parent:SetSize(1, 1)
+  ns.Overlay:Hide()
+  for _, b in ipairs(ns.RenderFrames) do
+    if b:IsShown() then
+      if b._fbb_glow_enabled then
+        Glow.PixelGlow_Stop(b)
+        b._fbb_glow_enabled = false
+        b._fbb_glow_rgba = nil
+      end
+      if ns.ClearCooldownVisual then ns.ClearCooldownVisual(b) end
+      b._fbb_key = nil
+      b._fbb_entry = nil
+      if b.timerText       then b.timerText:SetText(""); b.timerText:Hide() end
+      if b.rankOverlay     then b.rankOverlay:Hide() end
+      if b.fleetingOverlay then b.fleetingOverlay:Hide() end
+      b:Hide()
+    end
+  end
+  wipe(ns.RenderIndexByKey)
+end
+
+-- Clears icons during combat (if suspended).
+function ns.CombatClearIcons()
+  if ns.RenderParent then
+    ns.RenderParent:Hide()
+  end
+  ns.HideAllRenderedIcons()
+end
+
+-- Restores icons after combat.
+function ns.CombatRestoreIcons()
+  if ns.RenderParent then
+    ns.RenderParent:Show()
+  end
+  if ns.RenderAll then
+    ns.RenderAll()
+  end
+end
+
+-- Handles combat suspension of rendering.
+local _combatFrame = CreateFrame("Frame")
+_combatFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+_combatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+_combatFrame:SetScript("OnEvent", function(_, event)
+  if event == "PLAYER_REGEN_DISABLED" then
+    ns._combat_suspended = true
+    ns.CombatClearIcons()
+  else
+    ns._combat_suspended = false
+    ns.CombatRestoreIcons()
+  end
+end)
+
+-- Resolves font path.
+local function ResolveFontPath(name)
+  if ns.Options and ns.Options.GetFontPathByName then
+    local p = ns.Options.GetFontPathByName(name)
+    if p then return p end
   end
   local fallback = GameFontNormal and select(1, GameFontNormal:GetFont())
   return fallback or "Fonts\\FRIZQT__.TTF"
@@ -184,85 +268,686 @@ function ns.RenderAll()
   if ns._combat_suspended or ns.InCombatSuppressed then return end
   if InCombatLockdown() then return end
 
-  local db = FurphyBuffButtonsDB
-  if not db then return end
+  local db = ns.GetDB() or {}
+  local displayable = _G.furphyBuffCache and _G.furphyBuffCache.displayable or {}
 
-  local size = db.iconSize or 40
-  local spacing = db.spacing or 5
-  local cols = db.columns or 10
-  local growDir = db.growDirection or "RIGHT"
-  local align = db.alignment or "CENTER"
-
-  local used = {}
-  local index = 1
-
-  -- Iterate through active buffs and render them.
-  for _, entry in ipairs(ns.ActiveBuffs or {}) do
-    local key = entryKey(entry.category, entry)
-    local btn = ns.RenderIndexByKey[key]
-
-    if not btn then
-      btn = getButton(index)
-      ns.RenderIndexByKey[key] = btn
-      index = index + 1
-    end
-
-    used[key] = true
-    btn._fbb_key = key
-    btn._fbb_entry = entry
-
-    btn:SetSize(size, size)
-    setIconTextureIfChanged(btn, entry.icon)
-
-    if entry.count and entry.count > 1 then
-      btn.count:SetText(entry.count)
-    else
-      btn.count:SetText("")
-    end
-
-    if entry.duration and entry.duration > 0 then
-      btn.timerText:Show()
-    else
-      btn.timerText:Hide()
-    end
-
-    -- Handle cooldowns
-    if entry.start and entry.duration then
-      btn.cooldown:SetCooldown(entry.start, entry.duration)
-    else
-      btn.cooldown:Hide()
-    end
-
-    -- Handle glow
-    if entry.glow then
-      ensureGlow(btn, true, entry.glowColor or {r=1, g=1, b=0, a=1}, size)
-    else
-      ensureGlow(btn, false)
-    end
-
-    -- Set click action
-    if entry.spellID then
-      setButtonActionIfChanged(btn, "spell", entry.spellID)
-    elseif entry.itemID then
-      setButtonActionIfChanged(btn, "item", entry.itemID)
-    else
-      setButtonActionIfChanged(btn, nil, nil)
-    end
-
-    if not btn:IsShown() then btn:Show() end
+  local eatingActive = false
+  do
+    local eat = displayable.EATING
+    if eat then for _, _ in pairs(eat) do eatingActive = true; break end end
   end
 
-  -- Hide unused buttons and cleanup glows
+  local orderedCats = ns.GetCategoryOrder and ns.GetCategoryOrder() or {}
+  if #orderedCats == 0 then
+    for cat in pairs(displayable) do table.insert(orderedCats, cat) end
+    table.sort(orderedCats)
+  end
+  local catPriority = {}
+  for i, c in ipairs(orderedCats) do catPriority[c] = i end
+
+  local items = {}
+
+  for _, cat in ipairs(orderedCats) do
+    if not (eatingActive and cat == "FOOD") then
+      local catTable = displayable[cat]
+      if catTable then
+        for _, entry in pairs(catTable) do
+          local visible = true
+          if entry.showAt then visible = (GetTime() >= entry.showAt) end
+          if entry.expireTime and entry.expireTime == math.huge then visible = false end
+          if visible and ns.IsDisplayableExcluded and ns.IsDisplayableExcluded(cat, entry) then
+            visible = false
+          end
+          if visible then
+            entry.category = cat
+            table.insert(items, entry)
+          end
+        end
+      end
+    end
+  end
+
+  if ns._force_min_icons then
+    local need = math.max(0, ns._force_min_icons - #items)
+    for i = 1, need do
+      table.insert(items, {
+        category = "DUMMY",
+        name = "Dummy"..i,
+        texture = "Interface\\AddOns\\FurphyBuffButtons\\Media\\furphyLogoIcon",
+        _fbb_dummy = true,
+      })
+    end
+  end
+
+  if #items == 0 then
+    ns.RenderParent:SetSize(1, 1)
+    ns.Overlay:Hide()
+    for _, b in ipairs(ns.RenderFrames) do
+      if b:IsShown() then
+        if b._fbb_glow_enabled and Glow then Glow.PixelGlow_Stop(b) end
+        if ns.ClearCooldownVisual then ns.ClearCooldownVisual(b) end
+        b._fbb_glow_enabled = false
+        b._fbb_glow_rgba = nil
+        b._fbb_key = nil
+        b._fbb_entry = nil
+        if b.timerText then b.timerText:SetText(""); b.timerText:Hide() end
+        if b.rankOverlay then b.rankOverlay:Hide() end
+        if b.fleetingOverlay then b.fleetingOverlay:Hide() end
+        b:Hide()
+      end
+    end
+    wipe(ns.RenderIndexByKey)
+    return
+  end
+
+  local function GetRaidBuffOrderIndex(spellID)
+    if not _raidBuffOrderMap then
+      _raidBuffOrderMap = {}
+      if ns.GetRaidBuffOrderMap then
+        _raidBuffOrderMap = ns.GetRaidBuffOrderMap() or _raidBuffOrderMap
+      end
+      if not next(_raidBuffOrderMap) and _G.furphyBuffCache and _G.FurphyBuffData then
+        local classID = _G.furphyBuffCache.playerInfo and _G.furphyBuffCache.playerInfo.playerClassId
+        local tbl = classID and _G.FurphyBuffData[classID]
+        if tbl then
+          local keys = {}
+          for k in pairs(tbl) do if type(k)=="number" then keys[#keys+1]=k end end
+          table.sort(keys)
+          for i, k in ipairs(keys) do _raidBuffOrderMap[k] = i end
+        end
+      end
+    end
+    return _raidBuffOrderMap[spellID] or 9999
+  end
+
+  local function SortItems(list, prio)
+    table.sort(list, function(a, b)
+      local ai = prio[a.category] or 999
+      local bi = prio[b.category] or 999
+      if ai ~= bi then return ai < bi end
+      if a.category == "PETS" and b.category == "PETS" then
+        local ah = tonumber(a.orderHint) or 1e9
+        local bh = tonumber(b.orderHint) or 1e9
+        if ah ~= bh then return ah < bh end
+        local as = a.spellID or a.itemID or 0
+        local bs = b.spellID or b.itemID or 0
+        if as ~= bs then return as < bs end
+        local af = (a.isFixed and 1 or 0)
+        local bf = (b.isFixed and 1 or 0)
+        if af ~= bf then return af < bf end
+        return false
+      end
+      if a.category == "RAID_BUFFS" and b.category == "RAID_BUFFS" then
+        local oa = GetRaidBuffOrderIndex(a.spellID or 0)
+        local ob = GetRaidBuffOrderIndex(b.spellID or 0)
+        if oa ~= ob then return oa < ob end
+        local as = a.spellID or 0
+        local bs = b.spellID or 0
+        if as == bs then
+          local sa = a.orderHint or 0
+          local sb = b.orderHint or 0
+          if sa ~= sb then return sa < sb end
+          if (a.isFixed and not b.isFixed) then return false end
+          if (b.isFixed and not a.isFixed) then return true end
+          return false
+        end
+        return as < bs
+      end
+      local ka = a.itemID or a.spellID or 0
+      local kb = b.itemID or b.spellID or 0
+      return ka < kb
+    end)
+  end
+
+  SortItems(items, catPriority)
+
+  local size         = db.iconSize or 50
+  local spacingH     = math.floor(((db.hSpace or 9) / 50) * size + 0.5)
+  local spacingV     = math.floor(((db.vSpace or 9) / 50) * size + 0.5)
+  local style        = db.style or "HORIZONTAL"
+  local useMax       = (db.useMaxPerRow == true)
+  local perTierOpt   = math.max(1, db.maxPerRow or 7)
+  local alignKey     = db.alignment or "CENTER"
+  local growDown     = (db.growV or "DOWN") == "DOWN"
+  local growRight    = (db.growH == "RIGHT") or (db.gridLTR ~= false)
+  local hstep  = size + spacingH
+  local vstep  = size + spacingV
+  local parentW, parentH = 0, 0
+  local coords = {}
+  local function place(i, x, y) coords[i] = { x=x, y=y } end
+
+  if style == "HORIZONTAL" then
+    if not useMax then
+      local n = #items
+      local capacityCols = math.max(n, perTierOpt)
+      parentW = (capacityCols > 0) and (capacityCols*size + (capacityCols-1)*spacingH) or 0
+      parentH = size
+      local baseLeftX = -parentW/2 + size/2
+      local shiftX
+      if     alignKey == "LEFT"   then shiftX = 0
+      elseif alignKey == "RIGHT"  then shiftX = (capacityCols - n) * hstep
+      else   shiftX = ((capacityCols - n) * hstep) / 2 end
+      if alignKey == "RIGHT" then
+        for j = 0, n - 1 do
+          local x = baseLeftX + shiftX + ((n-1 - j)*hstep)
+          place(j+1, x, 0)
+        end
+      else
+        for j = 0, n - 1 do
+          local x = baseLeftX + shiftX + (j*hstep)
+          place(j+1, x, 0)
+        end
+      end
+    else
+      local rows = math.ceil(#items / perTierOpt)
+      local capacityCols = perTierOpt
+      parentW = (capacityCols > 0) and (capacityCols*size + (capacityCols-1)*spacingH) or 0
+      parentH = (rows > 0) and (rows*vstep - (vstep - size)) or 0
+      local baseLeftX = -parentW/2 + size/2
+      local topY      =  parentH/2 - size/2
+      local botY      = -parentH/2 + size/2
+      local idx = 1
+      for r = 0, rows - 1 do
+        local remain = #items - idx + 1
+        local take   = math.min(perTierOpt, remain)
+        local shiftX
+        if     alignKey == "LEFT"   then shiftX = 0
+        elseif alignKey == "RIGHT"  then shiftX = (perTierOpt - take) * hstep
+        else   shiftX = ((perTierOpt - take) * hstep) / 2 end
+        local y = growDown and (topY - r*vstep) or (botY + r*vstep)
+        if alignKey == "RIGHT" then
+          for j = 0, take - 1 do
+            local x = baseLeftX + shiftX + ((take-1 - j)*hstep)
+            place(idx, x, y) ; idx = idx + 1
+          end
+        else
+          for j = 0, take - 1 do
+            local x = baseLeftX + shiftX + (j*hstep)
+            place(idx, x, y) ; idx = idx + 1
+          end
+        end
+      end
+    end
+  else
+    if not useMax then
+      local n = #items
+      local capacityRows = math.max(n, perTierOpt)
+      parentW = size
+      parentH = (capacityRows > 0) and (capacityRows*vstep - (vstep - size)) or 0
+      local topY      =  parentH/2 - size/2
+      local rowShiftY
+      if     alignKey == "LEFT"   then rowShiftY = 0
+      elseif alignKey == "RIGHT"  then rowShiftY = (capacityRows - n) * vstep
+      else   rowShiftY = ((capacityRows - n) * vstep) / 2 end
+      for j = 0, n - 1 do
+        local y = topY - (rowShiftY + j*vstep)
+        place(j+1, 0, y)
+      end
+    else
+      local columns      = math.ceil(#items / perTierOpt)
+      local capacityRows = perTierOpt
+      parentW = (columns > 0)      and ((columns-1)*hstep + size)      or 0
+      parentH = (capacityRows > 0) and ((capacityRows-1)*vstep + size) or 0
+      local colHalfSpan = (columns - 1) * hstep * 0.5
+      local rowCapTop   =  parentH/2 - size/2
+      local idx = 1
+      for c = 0, columns - 1 do
+        local colSlot = growRight and c or (columns - 1 - c)
+        local x = -colHalfSpan + colSlot * hstep
+        local remain = #items - idx + 1
+        local take   = math.min(perTierOpt, remain)
+        local rowShiftY
+        if     alignKey == "LEFT"   then rowShiftY = 0
+        elseif alignKey == "RIGHT"  then rowShiftY = (capacityRows - take) * vstep
+        else   rowShiftY = ((capacityRows - take) * vstep) / 2 end
+        for j = 0, take - 1 do
+          local y = rowCapTop - (rowShiftY + j*vstep)
+          place(idx, x, y)
+          idx = idx + 1
+        end
+      end
+    end
+  end
+
+  ns.RenderParent:SetSize(math.max(1, parentW), math.max(1, parentH))
+  local pad = size * 2
+  ns.Overlay:ClearAllPoints(); ns.Overlay:SetPoint("CENTER", ns.RenderParent, "CENTER")
+  ns.Overlay:SetSize(parentW + pad, parentH + pad)
+  ns.Hover:ClearAllPoints();   ns.Hover:SetPoint("CENTER", ns.RenderParent, "CENTER")
+  ns.Hover:SetSize(parentW + pad, parentH + pad)
+
+  local function ResolveFontPath(name)
+    if ns.Options and ns.Options.GetFontPathByName then
+      local p = ns.Options.GetFontPathByName(name)
+      if p then return p end
+    end
+    local fallback = GameFontNormal and select(1, GameFontNormal:GetFont())
+    return fallback or "Fonts\\FRIZQT__.TTF"
+  end
+  local centerFontPath = ResolveFontPath(db.fontName)
+  local centerSize = math.max(1, math.floor(((db.timerSize or 28) / 50) * (db.iconSize or 50) + 0.5))
+  local centerOutline = (db.centerOutline ~= false) and "OUTLINE" or ""
+
+  local used = {}
+  local general = db.glowColor or { r=0.95, g=0.95, b=0.32, a=1 }
+  local special = db.specialGlowColor or { r=0.00, g=0.913725, b=1.00, a=1 }
+
+  local function sameRGBA(a, b)
+    if not a or not b then return false end
+    return a[1]==b[1] and a[2]==b[2] and a[3]==b[3] and (a[4] or 1)==(b[4] or 1)
+  end
+
+  local function ensureGlow(btn, shouldEnable, color, size)
+    if not shouldEnable then
+      if btn._fbb_glow_enabled and Glow then
+        Glow.PixelGlow_Stop(btn)
+        btn._fbb_glow_enabled = false
+        btn._fbb_glow_rgba = nil
+        btn._fbb_glow_size = nil
+      end
+      return
+    end
+    if not Glow then return end
+    local rgba = { color.r, color.g, color.b, color.a or 1 }
+    local N = 8
+    local frequency = 0.25
+    local length = (10 / 50) * size
+    local th     = ( 1.6 / 50) * size
+    if btn._fbb_glow_enabled then
+      if not sameRGBA(btn._fbb_glow_rgba, rgba) or btn._fbb_glow_size ~= size then
+        Glow.PixelGlow_Stop(btn)
+        btn._fbb_glow_enabled = false
+      end
+    end
+    if not btn._fbb_glow_enabled then
+      Glow.PixelGlow_Start(btn, rgba, N, frequency, length, th, 0, 0, true)
+      btn._fbb_glow_enabled = true
+      btn._fbb_glow_rgba = rgba
+      btn._fbb_glow_size = size
+    end
+  end
+
+  local function setIconTextureIfChanged(btn, tex)
+    if btn.icon._fbb_tex ~= tex then
+      btn.icon:SetTexture(tex or 134400)
+      btn.icon._fbb_tex = tex
+    end
+  end
+
+  local function setButtonActionIfChanged(btn, actionType, value1)
+    if btn._fbb_action_type ~= actionType or btn._fbb_action_v1 ~= value1 then
+      if actionType == "macro" then
+        btn:SetAttribute("type", "macro")
+        btn:SetAttribute("macrotext", value1)
+      elseif actionType == "item" then
+        btn:SetAttribute("type", "item")
+        btn:SetAttribute("item", "item:" .. tostring(value1))
+      elseif actionType == "spell" then
+        btn:SetAttribute("type", "spell")
+        btn:SetAttribute("spell", value1)
+      else
+        btn:SetAttribute("type", nil)
+      end
+      btn._fbb_action_type = actionType
+      btn._fbb_action_v1   = value1
+    end
+  end
+
+  local function knobOffsets(ks, size, defX, defY)
+    if not ks then return defX, defY end
+    local x = ks.x
+    local y = ks.y
+    if x == nil and ks.xMul then x = ks.xMul * size end
+    if y == nil and ks.yMul then y = ks.yMul * size end
+    if x == nil and ks.offsetX ~= nil then x = ks.offsetX end
+    if y == nil and ks.offsetY ~= nil then y = ks.offsetY end
+    if x == nil then x = defX end
+    if y == nil then y = defY end
+    return x, y
+  end
+
+  local ctc = db.centerTextColor or {r=1,g=1,b=1,a=1}
+
+  local function entryKey(cat, entry)
+    if cat == "MAIN_HAND" then
+      return "MH:" .. tostring(entry.itemID or entry.name or "")
+    elseif cat == "OFF_HAND" then
+      return "OH:" .. tostring(entry.itemID or entry.name or "")
+    end
+    if entry.isFixed and entry.spellID then
+      local suf = ""
+      local b1  = (type(entry.buffID) == "table") and entry.buffID[1] or entry.buffID
+      if b1 then suf = ":b" .. tostring(b1) end
+      return cat .. ":spell:" .. tostring(entry.spellID) .. ":fixed" .. suf
+    end
+    if entry.itemID then
+      return cat .. ":item:" .. tostring(entry.itemID)
+    end
+    if entry.spellID then
+      local suf = ""
+      local b1  = (type(entry.buffID) == "table") and entry.buffID[1] or entry.buffID
+      if b1 then suf = ":b" .. tostring(b1) end
+      return cat .. ":spell:" .. tostring(entry.spellID) .. suf
+    end
+    return cat .. ":name:" .. tostring(entry.name or "")
+  end
+
+  for idx, entry in ipairs(items) do
+    local key = entryKey(entry.category, entry)
+
+    local btn = ns.RenderIndexByKey[key]
+    if not (btn and btn:IsShown()) then
+      for i = 1, #ns.RenderFrames do
+        local b = ns.RenderFrames[i]
+        if not b:IsShown() then btn = b; break end
+      end
+      if not btn then
+        local index = #ns.RenderFrames + 1
+        btn = CreateFrame("Button", addonName .. "Icon" .. index, ns.RenderParent, "SecureActionButtonTemplate")
+        btn:SetSize(1, 1)
+        btn:RegisterForClicks(GetCVarBool("ActionButtonUseKeyDown") and "LeftButtonDown" or "LeftButtonUp")
+
+        local icon = btn:CreateTexture(nil, "ARTWORK")
+        icon:SetAllPoints()
+        icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        btn.icon = icon
+
+        btn.overlayFrame = CreateFrame("Frame", nil, btn)
+        btn.overlayFrame:SetAllPoints(btn)
+        btn.overlayFrame:SetFrameLevel(btn:GetFrameLevel() + 20)
+
+        btn.rankOverlay = btn.overlayFrame:CreateTexture(nil, "ARTWORK")
+        btn.rankOverlay:SetPoint("TOPLEFT", btn, "TOPLEFT", -2, 2)
+        btn.rankOverlay:Hide()
+
+        btn.fleetingOverlay = btn.overlayFrame:CreateTexture(nil, "ARTWORK")
+        btn.fleetingOverlay:SetPoint("CENTER", btn, "BOTTOMRIGHT", 2, -2)
+        btn.fleetingOverlay:Hide()
+
+        btn.topText = btn:CreateFontString(nil, "OVERLAY")
+        btn.topText:SetPoint("BOTTOM", btn, "TOP", 0, 0)
+        ns.UpdateFontString(btn.topText, "", db.fontName or "Fonts\\FRIZQT__.TTF",
+            db.topSize or 14, db.topOutline ~= false, db.topTextColor or {r=1,g=1,b=1,a=1})
+
+        btn.bottomText = btn:CreateFontString(nil, "OVERLAY")
+        btn.bottomText:SetPoint("TOP", btn, "BOTTOM", 0, -5)
+        ns.UpdateFontString(btn.bottomText, "", db.fontName or "Fonts\\FRIZQT__.TTF",
+            db.bottomSize or 14, db.bottomOutline ~= false, db.bottomTextColor or {r=1,g=1,b=1,a=1})
+
+        btn.centerText = btn.overlayFrame:CreateFontString(nil, "OVERLAY")
+        btn.centerText:SetPoint("CENTER", btn, "CENTER", 0, 0)
+        btn.centerText:SetFont(centerFontPath, centerSize, centerOutline)
+        btn.centerText:SetTextColor(ctc.r, ctc.g, ctc.b, ctc.a or 1)
+        btn._fbb_center_font_path  = centerFontPath
+        btn._fbb_center_font_size  = centerSize
+        btn._fbb_center_outline    = centerOutline
+
+        btn.cornerText = btn:CreateFontString(nil, "OVERLAY")
+        btn.cornerText:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", -2, 2)
+        ns.UpdateFontString(btn.cornerText, "", db.fontName or "Fonts\\FRIZQT__.TTF",
+            db.cornerSize or db.bottomSize or 14, db.cornerOutline ~= false,
+            db.cornerTextColor or db.bottomTextColor or {r=1,g=1,b=1,a=1})
+
+        btn.timerText = btn:CreateFontString(nil, "OVERLAY")
+        btn.timerText:SetPoint("TOP", btn.bottomText, "BOTTOM", 0, 0)
+        ns.UpdateFontString(btn.timerText, "", db.fontName or "Fonts\\FRIZQT__.TTF",
+            db.bottomSize or 14, db.bottomOutline ~= false, db.bottomTextColor or {r=1,g=1,b=1,a=1})
+        btn.timerText:Hide()
+
+        btn:SetScript("OnEnter", function(self)
+          local d  = (ns.GetDB and ns.GetDB()) or _G.FurphyBuffButtonsDB or {}
+          local tt = (d.tooltips and d.tooltips.enabled ~= false)
+          local entryX = self._fbb_entry
+
+          if entryX and entryX.hoverIcon and self.icon and self.icon.GetTexture then
+            self._fbb_icon_restore = self.icon:GetTexture()
+            self.icon:SetTexture(entryX.hoverIcon)
+          end
+
+          if not tt then
+            if IsShiftKeyDown() and ns.Overlay then ns.Overlay:Show() end
+            return
+          end
+
+          if entryX then
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            local ok = false
+            if entryX.itemID then
+              GameTooltip:SetItemByID(entryX.itemID)
+              ok = true
+            elseif entryX.spellID then
+              GameTooltip:SetSpellByID(entryX.spellID)
+              ok = true
+            end
+            if not ok then
+              local text = entryX.name
+              if not text or text == "" then
+                text = entryX.topLbl or entryX.btmLbl or entryX.category or " "
+              end
+              GameTooltip:SetText(tostring(text))
+            end
+            GameTooltip:Show()
+          end
+
+          if IsShiftKeyDown() and ns.Overlay then ns.Overlay:Show() end
+        end)
+
+
+        btn:SetScript("OnLeave", function(self)
+          GameTooltip:Hide()
+
+          if self.icon and self._fbb_icon_restore then
+            self.icon:SetTexture(self._fbb_icon_restore)
+            self._fbb_icon_restore = nil
+          end
+
+          if not (IsShiftKeyDown() and (ns.Hover:IsMouseOver() or ns.Overlay:IsMouseOver())) then
+            ns.Overlay:Hide()
+          end
+        end)
+
+
+
+        ns.RenderFrames[index] = btn
+      end
+      ns.RenderIndexByKey[key] = btn
+      btn._fbb_key = key
+    end
+
+    local btn2 = ns.RenderIndexByKey[key]
+    used[key] = true
+    btn2._fbb_entry = entry
+
+    btn2:SetSize(size, size)
+    btn2:ClearAllPoints()
+    local p = coords[idx]
+    btn2:SetPoint("CENTER", ns.RenderParent, "CENTER", p.x, p.y)
+
+    if btn2._fbb_center_font_size ~= centerSize or
+       btn2._fbb_center_font_path ~= centerFontPath or
+       btn2._fbb_center_outline   ~= centerOutline then
+      btn2.centerText:SetFont(centerFontPath, centerSize, centerOutline)
+      btn2._fbb_center_font_size = centerSize
+      btn2._fbb_center_font_path = centerFontPath
+      btn2._fbb_center_outline   = centerOutline
+    end
+    local ctcX = db.centerTextColor or {r=1,g=1,b=1,a=1}
+    if not btn2._fbb_center_color or
+       btn2._fbb_center_color.r ~= ctcX.r or btn2._fbb_center_color.g ~= ctcX.g or
+       btn2._fbb_center_color.b ~= ctcX.b or (btn2._fbb_center_color.a or 1) ~= (ctcX.a or 1) then
+      btn2.centerText:SetTextColor(ctcX.r, ctcX.g, ctcX.b, ctcX.a or 1)
+      btn2._fbb_center_color = {r=ctcX.r,g=ctcX.g,b=ctcX.b,a=ctcX.a}
+    end
+
+    local tex
+    if entry.texture then
+      tex = entry.texture
+    elseif entry.icon then
+      tex = entry.icon
+    elseif entry.itemID then
+      tex = select(5, C_Item.GetItemInfoInstant(entry.itemID)) or 134400
+    elseif entry.spellID then
+      local inf = C_Spell.GetSpellInfo(entry.spellID)
+      tex = (inf and inf.iconID) or 134400
+    else
+      tex = 134400
+    end
+    if btn2.icon._fbb_tex ~= tex then
+      btn2.icon:SetTexture(tex or 134400)
+      btn2.icon._fbb_tex = tex
+    end
+
+    do
+      local overlayAtlas, knobKey
+      if entry.specAtlas then
+        overlayAtlas = entry.specAtlas
+        knobKey = "spec"
+      elseif entry.rank == 1 then
+        overlayAtlas = "Professions-Icon-Quality-Tier1"
+        knobKey = "rank1"
+      elseif entry.rank == 2 then
+        overlayAtlas = "Professions-Icon-Quality-Tier2"
+        knobKey = "rank2"
+      elseif entry.rank == 3 then
+        overlayAtlas = "Professions-Icon-Quality-Tier3"
+        knobKey = "rank3"
+      elseif entry.hearty then
+        overlayAtlas = "Soulbinds_Tree_Conduit_Icon_Utility"
+        knobKey = "hearty"
+      end
+
+      if overlayAtlas then
+        local ks = C.rankOverlayKnobs and C.rankOverlayKnobs[knobKey]
+        btn2.rankOverlay:SetAtlas(overlayAtlas, true)
+        local s  = (ks and ks.scale) or 0.52
+        btn2.rankOverlay:SetSize(size * s, size * s)
+        btn2.rankOverlay:ClearAllPoints()
+        local ox, oy = knobOffsets(ks, size, 5, -5)
+        btn2.rankOverlay:SetPoint("CENTER", btn2, "TOPLEFT", ox, oy)
+        btn2.rankOverlay:SetAlpha((ks and ks.alpha) or 1)
+        btn2.rankOverlay:Show()
+      else
+        btn2.rankOverlay:Hide()
+      end
+
+      if entry.fleeting then
+        local k2 = C.rankOverlayKnobs and C.rankOverlayKnobs.fleeting
+        btn2.fleetingOverlay:SetAtlas("ChromieTime-32x32", true)
+        local s = (k2 and k2.scale) or 0.42
+        btn2.fleetingOverlay:SetSize(size * s, size * s)
+        btn2.fleetingOverlay:ClearAllPoints()
+        local ox, oy = knobOffsets(k2, size, 2, -2)
+        btn2.fleetingOverlay:SetPoint("BOTTOMRIGHT", btn2, "BOTTOMRIGHT", ox, oy)
+        btn2.fleetingOverlay:SetAlpha((k2 and k2.alpha) or 0.8)
+        btn2.fleetingOverlay:Show()
+      else
+        btn2.fleetingOverlay:Hide()
+      end
+    end
+
+    local color
+    if entry.category=="FOOD" and entry.hearty then      color = special
+    elseif entry.category=="FLASK" and entry.fleeting then color = special
+    elseif entry.glow == "special" then color = special
+    else color = general end
+    ensureGlow(btn2, (db.glowEnabled ~= false), color, size)
+
+    do
+      local txtTop = entry.topLbl or ""
+      if btn2._fbb_topText ~= txtTop then
+        btn2.topText:SetText(txtTop)
+        btn2._fbb_topText = txtTop
+      end
+    end
+
+    if not btn2._fbb_center_from_cd then
+      local centerVal = ""
+      if entry and entry.centerText ~= nil then
+        centerVal = tostring(entry.centerText or "")
+      elseif entry.category == "AUGMENT_RUNE" and entry.qty == false then
+        centerVal = ""
+      elseif entry.quantity and entry.quantity > 0 then
+        centerVal = tostring(entry.quantity)
+      elseif entry.category == "HEALTHSTONE" and entry.quantity ~= nil then
+        centerVal = tostring(entry.quantity)
+      else
+        centerVal = ""
+      end
+      if btn2._fbb_centerText ~= centerVal then
+        btn2.centerText:SetText(centerVal)
+        btn2._fbb_centerText = centerVal
+      end
+    end
+
+    do
+      local txtBottom = entry.btmLbl
+      if (not txtBottom or txtBottom == "") then
+        local val = ""
+        if entry.count ~= 1 or type(entry.macro) ~= "string" then
+          val = ""
+        else
+          if string.find(entry.macro, "@target") then
+            val = TARGET
+          else
+            local inside = entry.macro:match("%[@([^%]]+)%]")
+            local name = inside or entry.macro:match("@([%w%-]+)")
+            if name then
+              name = tostring(name)
+              local lower = string.lower(name)
+              if not (lower == "target" or lower == "player" or lower == "focus" or lower == "mouseover"
+                      or lower:match("^party%d+$") or lower:match("^raid%d+$")) then
+                val = name
+              end
+            end
+          end
+        end
+        txtBottom = val
+      end
+      if btn2._fbb_bottomText ~= txtBottom then
+        btn2.bottomText:SetText(txtBottom)
+        btn2._fbb_bottomText = txtBottom
+      end
+    end
+
+    do
+      local cornerVal = entry.qty and tostring(entry.qty) or ""
+      if entry.category == "MAIN_HAND" then cornerVal = "MH"
+      elseif entry.category == "OFF_HAND" then cornerVal = "OH" end
+      if btn2._fbb_cornerText ~= cornerVal then
+        btn2.cornerText:SetText(cornerVal, "OUTLINE")
+        btn2._fbb_cornerText = cornerVal
+      end
+    end
+
+    if ns.RefreshCooldownForButton then ns.RefreshCooldownForButton(btn2) end
+    if ns.RefreshSpellCooldownForButton then ns.RefreshSpellCooldownForButton(btn2) end
+
+    if entry.category == "EATING" then
+      if ns.ApplyEatingCooldown then ns.ApplyEatingCooldown(btn2, entry) end
+    elseif entry.cooldownStart and entry.cooldownDuration and entry.cooldownDuration > 0 then
+      if ns.ApplyItemCooldown then ns.ApplyItemCooldown(btn2, entry) end
+    else
+      if ns.ClearCooldownVisual then ns.ClearCooldownVisual(btn2) end
+    end
+
+    if entry.macro then
+      setButtonActionIfChanged(btn2, "macro", entry.macro)
+    elseif entry.itemID then
+      setButtonActionIfChanged(btn2, "item", entry.itemID)
+    elseif entry.spellID then
+      local castKey = (entry.spellToCast ~= nil) and entry.spellToCast or entry.spellID
+      setButtonActionIfChanged(btn2, "spell", castKey)
+    else
+      setButtonActionIfChanged(btn2, nil, nil)
+    end
+
+    if not btn2:IsShown() then btn2:Show() end
+  end
+
   for key, btn in pairs(ns.RenderIndexByKey) do
     if not used[key] and btn:IsShown() then
       if btn._fbb_glow_enabled and Glow then
-        -- Check if the glow frame actually exists before stopping
-        -- This prevents the "Attempted to release object that doesn't belong to this pool" error
-        -- The error happens when LibCustomGlow tries to release a frame that was already released or doesn't exist
-        local glowFrameName = "_PixelGlow"
-        if btn[glowFrameName] then
-             Glow.PixelGlow_Stop(btn)
-        end
+        Glow.PixelGlow_Stop(btn)
         btn._fbb_glow_enabled = false
         btn._fbb_glow_rgba = nil
       end
@@ -273,33 +958,7 @@ function ns.RenderAll()
       if btn.rankOverlay then btn.rankOverlay:Hide() end
       if btn.fleetingOverlay then btn.fleetingOverlay:Hide() end
       btn:Hide()
-    end
-  end
-
-  -- Clean up the index map for unused keys
-  for key in pairs(ns.RenderIndexByKey) do
-      if not used[key] then
-          ns.RenderIndexByKey[key] = nil
-      end
-  end
-
-  -- Layout logic (simplified for brevity)
-  local x, y = 0, 0
-  local count = 0
-  for _, entry in ipairs(ns.ActiveBuffs or {}) do
-    local key = entryKey(entry.category, entry)
-    local btn = ns.RenderIndexByKey[key]
-    if btn then
-      btn:ClearAllPoints()
-      btn:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y)
-
-      count = count + 1
-      if count % cols == 0 then
-        x = 0
-        y = y - (size + spacing)
-      else
-        x = x + (size + spacing)
-      end
+      ns.RenderIndexByKey[key] = nil
     end
   end
 end

@@ -94,12 +94,7 @@ local function applySpellCooldownFields(entry, spellID)
   local info = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(spellID)
   local start = info and info.startTime or 0
   local duration = info and info.duration or 0
-  -- Safely check isEnabled (may be a secret value)
-  local enabled = false
-  if info then
-    local ok, result = pcall(function() return info.isEnabled end)
-    if ok and result then enabled = true end
-  end
+  local enabled = info and info.isEnabled
   if enabled and start > 0 and duration and duration >= 1.5 then
     entry.cooldownStart    = start
     entry.cooldownDuration = duration

@@ -133,10 +133,7 @@ local function ReadSpellCooldown(spellID)
     if type(cd) == "table" then
       local start  = cd.startTime or 0
       local dur    = cd.duration  or 0
-      local enable = 0
-      -- Safely check isEnabled (may be a secret value)
-      local ok, result = pcall(function() return cd.isEnabled end)
-      if ok and result then enable = 1 end
+      local enable = (cd.isEnabled and 1) or 0
       return start, dur, enable
     end
   end
