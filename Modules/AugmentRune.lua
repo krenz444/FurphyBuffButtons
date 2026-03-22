@@ -65,7 +65,9 @@ local function GetExpireForIDs(ids)
   while true do
     local a = AuraByIndex and AuraByIndex("player", i, "HELPFUL")
     if not a then break end
-    if a.spellId and ids then
+    if issecretvalue and issecretvalue(a.spellId) then
+      -- skip secret auras
+    elseif a.spellId and ids then
       for j = 1, #ids do
         if a.spellId == ids[j] then
           local ex = a.expirationTime
@@ -190,6 +192,10 @@ local function AugmentRune_OnPlayerAura(unit, updateInfo)
     for i = 1, #added do
       local a = added[i]
       local id = a and a.spellId
+      if id and issecretvalue and issecretvalue(id) then
+        if ns.UpdateAugmentRunes then ns.UpdateAugmentRunes() end
+        return
+      end
       if id and set[id] then
         if ns.UpdateAugmentRunes then ns.UpdateAugmentRunes() end
         return
@@ -202,6 +208,10 @@ local function AugmentRune_OnPlayerAura(unit, updateInfo)
     for i = 1, #updated do
       local info = AuraByInstance("player", updated[i])
       local id = info and info.spellId
+      if id and issecretvalue and issecretvalue(id) then
+        if ns.UpdateAugmentRunes then ns.UpdateAugmentRunes() end
+        return
+      end
       if id and set[id] then
         if ns.UpdateAugmentRunes then ns.UpdateAugmentRunes() end
         return

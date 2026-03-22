@@ -90,7 +90,9 @@ local function ScanPlayerEatingAura()
   for i=1, 40 do
     local aura = AuraByIndex and AuraByIndex("player", i, "HELPFUL")
     if not aura then break end
-    if aura.name and EATING_NAMES[aura.name] then
+    if issecretvalue and (issecretvalue(aura.name) or issecretvalue(aura.spellId)) then
+      -- skip secret auras
+    elseif aura.name and EATING_NAMES[aura.name] then
       local exp = aura.expirationTime or 0
       local dur = aura.duration or 0
       if (not dur or dur <= 0) and exp and exp > 0 then
@@ -109,7 +111,9 @@ local function HasWellFedOverThreshold(thresh)
   for i=1, 40 do
     local aura = AuraByIndex and AuraByIndex("player", i, "HELPFUL")
     if not aura then break end
-    if aura.name and WELLFED_NAMES[aura.name] then
+    if issecretvalue and (issecretvalue(aura.name) or issecretvalue(aura.spellId)) then
+      -- skip secret auras
+    elseif aura.name and WELLFED_NAMES[aura.name] then
       local exp = aura.expirationTime
       if exp and exp > now and (exp - now) > thresh then
         return true
@@ -167,6 +171,11 @@ local function OnUnitAura(unit, updateInfo)
     for i = 1, #updateInfo.addedAuras do
       local a = updateInfo.addedAuras[i]
       local n = a and a.name
+      -- Secret values cannot be used as table keys; fall back to full rescan
+      if n and issecretvalue and issecretvalue(n) then
+        changed = true
+        break
+      end
       if n and (EATING_NAMES[n] or WELLFED_NAMES[n]) then
         changed = true
         break
@@ -177,11 +186,21 @@ local function OnUnitAura(unit, updateInfo)
   if not changed and updateInfo.updatedAuraInstanceIDs and AuraByInstance then
     for i = 1, #updateInfo.updatedAuraInstanceIDs do
       local id = updateInfo.updatedAuraInstanceIDs[i]
-      local a = AuraByInstance("player", id)
-      local n = a and a.name
-      if id == lastInstanceID or (n and (EATING_NAMES[n] or WELLFED_NAMES[n])) then
+      if id == lastInstanceID then
         changed = true
         break
+      end
+      local a = AuraByInstance("player", id)
+      if a then
+        local n = a.name
+        if n and issecretvalue and issecretvalue(n) then
+          changed = true
+          break
+        end
+        if n and (EATING_NAMES[n] or WELLFED_NAMES[n]) then
+          changed = true
+          break
+        end
       end
     end
   end

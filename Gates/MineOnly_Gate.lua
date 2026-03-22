@@ -35,6 +35,7 @@ local function _auraMatchesMineOnly(a, idSet, nameSet, nameMode)
   end
 
   if not byPlayer then return false end
+  if issecretvalue and (issecretvalue(a.spellId) or issecretvalue(a.name)) then return false end
   if idSet and a.spellId and idSet[a.spellId] then return true end
   if nameMode and nameSet and a.name and nameSet[a.name] then return true end
   return false

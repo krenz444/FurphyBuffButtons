@@ -101,7 +101,7 @@ local function auraRem(unit, buffId, mineOnly)
       end
     end
 
-    if a.spellId == buffId then
+    if not isSecret and a.spellId == buffId then
       if not mineOnly or isMine then
         if a.expirationTime and a.expirationTime > 0 then
           return a.expirationTime - GetTime()
@@ -216,7 +216,7 @@ local function learnEarthFixedFrom(unit, ES)
       end
     end
 
-    if a.spellId == want and isMine then
+    if not isSecret and a.spellId == want and isMine then
       local who = shortName(unit)
       local me  = shortName("player")
       if who and who ~= me and DB().fixedTargets[974] ~= who then

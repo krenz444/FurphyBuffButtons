@@ -72,7 +72,7 @@ local function auraRemOnPlayer(buffId)
       end
     end
 
-    if a.spellId == buffId and isMine then
+    if not isSecret and a.spellId == buffId and isMine then
       if a.expirationTime and a.expirationTime > 0 then
         return a.expirationTime - GetTime()
       else

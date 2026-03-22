@@ -58,7 +58,9 @@ local function IsActiveFlaskFleeting()
   while true do
     local a = C_UnitAuras.GetAuraDataByIndex("player", i, "HELPFUL")
     if not a then break end
-    if FLEETING_BY_BUFFID[a.spellId] then return true end
+    if issecretvalue and issecretvalue(a.spellId) then
+      -- skip secret auras
+    elseif FLEETING_BY_BUFFID[a.spellId] then return true end
     i = i + 1
   end
   return false

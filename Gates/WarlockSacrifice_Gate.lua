@@ -41,7 +41,9 @@ local function HasSacBuff()
   while true do
     local a = C_UnitAuras.GetAuraDataByIndex("player", i, "HELPFUL")
     if not a then break end
-    if a.spellId == SACRIFICE_BUFF then return true end
+    if issecretvalue and issecretvalue(a.spellId) then
+      -- skip secret auras
+    elseif a.spellId == SACRIFICE_BUFF then return true end
     i = i + 1
   end
   return false
