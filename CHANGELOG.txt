@@ -8,6 +8,36 @@
                                                  CURRENT PATCH NOTES
 =======================================================================================================================
 
+**v8.0.0**
+
+- **Midnight Expansion Support**
+  - Added all Midnight food items (35 hearty + 35 regular) with correct item IDs and icons
+  - Added Midnight flasks: Shattered Sun, Blood Knights, Magisters, Thalassian Resistance, Vicious Honor
+  - Added Midnight weapon enchants: Refulgent Whetstone/Weightstone, Thalassian Phoenix Oil,
+    Smuggler's Enchanted Edge, Oil of Dawn
+  - Added Midnight ranged enchants: Smuggler's Lynxeye, Farstrider's Hawkeye, Laced Zoomshots,
+    Weighted Boomshots
+  - Added Void-Touched Augment Rune
+
+- **War Within Consumables Removed**
+  - Removed all obsolete War Within food, flasks, weapon enchants, and consumable augment runes
+  - Retained non-consumable augment runes (Ethereal Augment Rune, Dreambound Augment Rune)
+
+- **Alerts System Removed**
+  - Removed the entire Alerts module (raid announcements for feasts, cauldrons, portals, etc.)
+  - This feature is no longer compatible with Midnight addon restrictions
+  - Removed the Alerts tab from the options panel
+  - Removed bundled alert sound files
+
+- **Default Position Changed**
+  - Buff buttons now default to top-center of the screen (previously screen center)
+  - Existing users with the old center position are automatically migrated
+
+
+=======================================================================================================================
+                                                HISTORICAL PATCH NOTES
+=======================================================================================================================
+
 **v7.1.0**
 
 - **Addon Rebranding**
@@ -16,10 +46,6 @@
   - Slash commands changed from `/crb` to `/fbb` (with `/buff` still supported)
   - Maintained full credit to original creator Funki throughout documentation
 
-
-=======================================================================================================================
-                                                HISTORICAL PATCH NOTES
-=======================================================================================================================
 
 **v7.0.0**
 

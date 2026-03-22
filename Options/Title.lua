@@ -92,8 +92,7 @@ local function PulseOK(ok)
   if not ok then return end
   ok:Show()
   C_Timer.After(1.0, function() if ok:IsShown() then ok:Hide() end end)
-  local path = LSM and LSM.Fetch and LSM:Fetch("sound", "Alerts: |cffff7d0Ffunki.gg|r Ding Dong", true)
-  if path then PlaySoundFile(path, "Master") else PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON) end
+  PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 end
 
 -- Helper to resolve anchor frames by tag

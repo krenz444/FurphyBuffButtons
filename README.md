@@ -3,25 +3,20 @@
 **Furphy Buff Buttons (FBB)** is a World of Warcraft addon that displays missing raid buffs, consumables, and temporary enchants, allowing you to click them to cast the buff or use the item directly.
 
 **Author:** Furphy (Originally created by Funki)
-**Version:** 7.1.0
+**Version:** 8.0.0
 
 ## Features
 
 *   **Raid Buffs:** Automatically detects missing class buffs (e.g., Arcane Intellect, Power Word: Fortitude, Mark of the Wild) and provides a clickable icon to cast them.
-*   **Consumables:** Tracks Flasks, Food, and Augment Runes. Shows icons when they are missing or about to expire.
-*   **Weapon Enchants:** Monitors temporary weapon enchants (Oils, Stones, Windfury, Flametongue, etc.) and provides clickable icons to apply them.
+*   **Consumables:** Tracks Flasks, Food, and Augment Runes for the current expansion (Midnight). Shows icons when they are missing or about to expire.
+*   **Weapon Enchants:** Monitors temporary weapon enchants (Oils, Whetstones, Weightstones, Ranged enchants, Windfury, Flametongue, etc.) and provides clickable icons to apply them.
 *   **Utility & Class Modules:**
     *   **Healthstones:** Shows an icon to create or use Healthstones.
     *   **Hunter Pets:** Helps manage calling, reviving, and healing pets.
     *   **Shaman Shields:** Tracks Lightning Shield, Water Shield, and Earth Shield.
     *   **Rogue Poisons:** Reminds you to apply poisons.
     *   **Durability:** Displays a repair icon when durability is low, allowing you to summon a repair mount.
-*   **Alerts:** Visual and audible alerts for important group events like:
-    *   Repair Bots (Jeeves, Reeves, etc.)
-    *   Feasts placed
-    *   Mage Portals
-    *   Summoning Rituals
-*   **Mythic+ Support:** Special options to manage consumables and alerts during Mythic+ runs.
+*   **Mythic+ Support:** Special options to manage consumables during Mythic+ runs.
 *   **Customizable:** Extensive options to configure icon size, position, growth direction, and more.
 
 ## Usage
@@ -40,16 +35,14 @@ The addon works out of the box with sensible defaults.
 *   `/fbb minimap` - Toggle the minimap button.
 *   `/fbb reset` - Reset all settings to default.
 
-## Recent Changes (v7.0.0)
+## Recent Changes (v8.0.0)
 
-This version includes significant updates to comply with Blizzard's latest addon restrictions:
-
-*   **Combat Log Access:** Functionality relying on the combat log has been removed to prevent errors.
-*   **Protected Functions:** Adjustments made to ensure compatibility with restricted environments, particularly during combat.
-*   **Recuperate:** The Recuperate module has been disabled due to API restrictions on reading unit health.
+*   **Midnight Expansion:** Full support for all Midnight consumables — food, flasks, weapon enchants, augment runes, and ranged enchants.
+*   **War Within Removal:** Removed all obsolete War Within (The War Within) consumables. Non-consumable augment runes (Ethereal, Dreambound) are retained.
+*   **Alerts Removed:** The Alerts system (raid announcements for feasts, cauldrons, portals, etc.) has been removed entirely due to incompatibility with Midnight addon restrictions.
+*   **Default Position:** Buff buttons now default to top-center of the screen instead of screen center.
 
 ## Credits
 
 *   **Furphy:** Current Maintainer
 *   **Funki:** Original Creator
-*   

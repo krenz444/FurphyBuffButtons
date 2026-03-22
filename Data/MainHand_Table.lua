@@ -3,28 +3,6 @@
 -- ====================================
 
 FurphyBuffData["MAIN_HAND"] = {
-  [222504] = { name="Ironclaw Whetstone", weaponType="BLADED", dual=true, rank=3, icon=3622195, topLbl="+AP", btmLbl=nil, gates={ "instance", "rested" } },
-  [222503] = { name="Ironclaw Whetstone", weaponType="BLADED", dual=true, rank=2, icon=3622195, topLbl="+AP", btmLbl=nil, gates={ "instance", "rested" } },
-  [222502] = { name="Ironclaw Whetstone", weaponType="BLADED", dual=true, rank=1, icon=3622195, topLbl="+AP", btmLbl=nil, gates={ "instance", "rested" } },
-
-  [222510] = { name="Ironclaw Weightstone", weaponType="BLUNT", dual=true, rank=3, icon=3622199, topLbl="+AP", btmLbl=nil, gates={ "instance", "rested" } },
-  [222509] = { name="Ironclaw Weightstone", weaponType="BLUNT", dual=true, rank=2, icon=3622199, topLbl="+AP", btmLbl=nil, gates={ "instance", "rested" } },
-  [222508] = { name="Ironclaw Weightstone", weaponType="BLUNT", dual=true, rank=1, icon=3622199, topLbl="+AP", btmLbl=nil, gates={ "instance", "rested" } },
-
-  [224107] = { name="Algari Mana Oil", weaponType="NEUTRAL", dual=true, rank=3, icon=609892, topLbl="Crit/Haste", btmLbl=nil, gates={ "instance", "rested" } },
-  [224106] = { name="Algari Mana Oil", weaponType="NEUTRAL", dual=true, rank=2, icon=609892, topLbl="Crit/Haste", btmLbl=nil, gates={ "instance", "rested" } },
-  [224105] = { name="Algari Mana Oil", weaponType="NEUTRAL", dual=true, rank=1, icon=609892, topLbl="Crit/Haste", btmLbl=nil, gates={ "instance", "rested" } },
-
-  [224113] = { name="Oil of Deep Toxins", weaponType="NEUTRAL", dual=true, rank=3, icon=609897, topLbl="Damage", btmLbl=nil, gates={ "instance", "rested" } },
-  [224112] = { name="Oil of Deep Toxins", weaponType="NEUTRAL", dual=true, rank=2, icon=609897, topLbl="Damage", btmLbl=nil, gates={ "instance", "rested" } },
-  [224111] = { name="Oil of Deep Toxins", weaponType="NEUTRAL", dual=true, rank=1, icon=609897, topLbl="Damage", btmLbl=nil, gates={ "instance", "rested" } },
-
-  [224110] = { name="Oil of Beledar's Grace", weaponType="NEUTRAL", dual=true, rank=3, icon=609896, topLbl="Heal", btmLbl=nil, gates={ "instance", "rested" } },
-  [224109] = { name="Oil of Beledar's Grace", weaponType="NEUTRAL", dual=true, rank=2, icon=609896, topLbl="Heal", btmLbl=nil, gates={ "instance", "rested" } },
-  [224108] = { name="Oil of Beledar's Grace", weaponType="NEUTRAL", dual=true, rank=1, icon=609896, topLbl="Heal", btmLbl=nil, gates={ "instance", "rested" } },
-
-  [220156] = { name="Bubbling Wax", weaponType="NEUTRAL", dual=true, rank=nil, icon=133778, topLbl="Wax", btmLbl=nil, gates={ "instance", "rested" } },
-
   -- Midnight Expansion
   [237371] = { name="Refulgent Whetstone",       weaponType="BLADED",  dual=true,  rank=2, icon=7548941, topLbl="+AP",        btmLbl=nil, gates={ "instance", "rested" } },
   [237370] = { name="Refulgent Whetstone",       weaponType="BLADED",  dual=true,  rank=1, icon=7548941, topLbl="+AP",        btmLbl=nil, gates={ "instance", "rested" } },

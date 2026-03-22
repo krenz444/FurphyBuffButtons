@@ -2,7 +2,7 @@
 ## Title: |cff00ccffFurphy Buff Buttons|r
 ## Notes: Displays missing raid buffs and temporary enchants, and allows you to click them to cast the buff or use the item.
 ## Author: Furphy
-## Version: 7.1.0
+## Version: 8.0.0
 ## IconTexture: Interface\AddOns\FurphyBuffButtons\Media\furphyMinimapIcon
 ## SavedVariables: FurphyBuffButtonsDB FurphyBuffButtonsMinimapDB
 ## OptionalDeps: LibStub CallbackHandler-1.0 LibSharedMedia-3.0 LibCustomGlow-1.0 AceConsole-3.0 LibDataBroker-1.1 LibDBIcon-1.0
@@ -66,7 +66,6 @@ Data\ShamanShields_Table.lua
 Data\CastableWeaponEnchants_Table.lua
 Data\RoguePoisons_Table.lua
 Data\CosmeticItems_Table.lua
-Data\Alerts_Table.lua
 Data\Trinkets_Table.lua
 
 # --- Modules ---
@@ -83,7 +82,6 @@ Modules\RoguePoisons.lua
 Modules\Healthstone.lua
 Modules\Exclusions.lua
 Modules\Cosmetics.lua
-Modules\Alerts.lua
 Modules\WeaponEnchants.lua
 Modules\Flask.lua
 Modules\MythicPlus.lua
@@ -118,4 +116,3 @@ Options\Tabs\Thresholds_Tab.lua
 Options\Tabs\Layout_Tab.lua
 Options\Tabs\Ignore_Tab.lua
 Options\Tabs\Customize_Tab.lua
-Options\Tabs\Alerts_Tab.lua

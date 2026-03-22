@@ -13,6 +13,5 @@ O.TAB_ORDER = {
   "Layout",
   "Thresholds",
   "Ignore",
-  "Alerts",
   "Customize",
 }
