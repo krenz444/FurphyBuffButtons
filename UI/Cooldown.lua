@@ -193,6 +193,12 @@ function ns.RefreshCooldownForButton(btn)
   local e = btn._fbb_entry
   if not e.itemID then return end
   local start, duration, enable = C_Container.GetItemCooldown(e.itemID)
+  -- Guard against secret cooldown values in M+
+  if issecretvalue and ((start and issecretvalue(start)) or (duration and issecretvalue(duration))) then
+    e.cooldownStart, e.cooldownDuration = nil, nil
+    ns.ClearCooldownVisual(btn)
+    return
+  end
   if enable == 1 and duration and duration >= 1.5 and start and start > 0 then
     e.cooldownStart    = start
     e.cooldownDuration = duration
@@ -212,6 +218,12 @@ function ns.RefreshSpellCooldownForButton(btn)
   local start   = info and info.startTime or 0
   local duration= info and info.duration  or 0
   local enabled = info and info.isEnabled
+  -- Guard against secret cooldown values in M+
+  if issecretvalue and (issecretvalue(start) or issecretvalue(duration)) then
+    e.cooldownStart, e.cooldownDuration = nil, nil
+    ns.ClearCooldownVisual(btn)
+    return
+  end
   if enabled and start > 0 and duration and duration >= 1.5 then
     e.cooldownStart    = start
     e.cooldownDuration = duration

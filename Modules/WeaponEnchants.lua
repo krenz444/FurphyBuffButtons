@@ -139,6 +139,14 @@ local function _updateWeaponEnchants()
   local hasMH, mhMS, _, _, hasOH, ohMS = GetWeaponEnchantInfo()
   local now = GetTime()
 
+  -- Guard against secret values from GetWeaponEnchantInfo in M+
+  if issecretvalue then
+    if issecretvalue(mhMS) then mhMS = nil end
+    if issecretvalue(ohMS) then ohMS = nil end
+    if issecretvalue(hasMH) then hasMH = nil end
+    if issecretvalue(hasOH) then hasOH = nil end
+  end
+
   local mhExpire = (mhType and hasMH and mhMS and mhMS > 0) and (now + mhMS/1000) or nil
   local ohExpire = (ohType and hasOH and ohMS and ohMS > 0) and (now + ohMS/1000) or nil
 

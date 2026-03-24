@@ -65,6 +65,12 @@ end
 -- Updates cooldown information for an item entry.
 local function applyItemCooldownFields(entry, itemID)
   local start, duration, enable = GetItemCooldown(itemID)
+  -- Guard against secret cooldown values in M+
+  if issecretvalue and ((start and issecretvalue(start)) or (duration and issecretvalue(duration))) then
+    entry.cooldownStart    = nil
+    entry.cooldownDuration = nil
+    return
+  end
   if enable == 1 and duration and duration > 1.5 and start and start > 0 then
     entry.cooldownStart    = start
     entry.cooldownDuration = duration

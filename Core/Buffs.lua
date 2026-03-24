@@ -30,8 +30,10 @@ function ns.GetPlayerBuffExpire(spellIDs, nameMode, infinite)
     if InCombatLockdown() then return nil end
     local function handleAura(aura)
         if not aura then return nil end
-        if infinite or aura.expirationTime == 0 then return math.huge end
-        return aura.expirationTime
+        local exp = aura.expirationTime
+        if issecretvalue and issecretvalue(exp) then return math.huge end
+        if infinite or exp == 0 then return math.huge end
+        return exp
     end
 
     if nameMode then
@@ -123,7 +125,9 @@ function ns.GetRaidBuffExpire(spellIDs, nameMode, infinite)
             if not aura then break end
             if matches(aura) then
                 hasThisBuff = true
-                local exp = (infinite or aura.expirationTime == 0) and math.huge or aura.expirationTime
+                local rawExp = aura.expirationTime
+                local expSecret = issecretvalue and rawExp and issecretvalue(rawExp)
+                local exp = (expSecret or infinite or rawExp == 0) and math.huge or rawExp
                 if exp and (not earliest or exp < earliest) then earliest = exp end
                 break
             end
@@ -184,10 +188,12 @@ function ns.GetRaidBuffExpireMine(spellIDs, nameMode, infinite)
             local aura = C_UnitAuras.GetAuraDataByIndex(unit, j, "HELPFUL")
             if not aura then break end
             if matchMine(aura) then
-                if infinite or aura.expirationTime == 0 then
+                local exp = aura.expirationTime
+                local expSecret = issecretvalue and exp and issecretvalue(exp)
+                if expSecret or infinite or exp == 0 then
                     return math.huge
                 else
-                    return aura.expirationTime
+                    return exp
                 end
             end
             j = j + 1
