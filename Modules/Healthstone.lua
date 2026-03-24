@@ -143,6 +143,10 @@ end
 -- Checks remaining cooldown of a spell.
 local function SpellCooldownRemaining(spellID)
   local start, dur, enable = ReadSpellCooldown(spellID)
+  -- Cooldown values may be secret in M+/encounters; treat as no cooldown
+  if issecretvalue and (issecretvalue(dur) or issecretvalue(start)) then
+    return false, 0, 0
+  end
   if enable ~= 1 or not dur or dur <= 1.5 or not start or start <= 0 then
     return false, 0, 0
   end

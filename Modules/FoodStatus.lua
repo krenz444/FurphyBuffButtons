@@ -17,6 +17,8 @@ local _suppressActive = false
 
 local EATING_NAMES = {}
 local WELLFED_NAMES = {}
+local EATING_IDS = {}
+local WELLFED_IDS = {}
 
 local function DB()
   return (ns.GetDB and ns.GetDB()) or _G.FurphyBuffButtonsDB or {}
@@ -35,10 +37,13 @@ end
 function BuildNameSets()
   wipe(EATING_NAMES)
   wipe(WELLFED_NAMES)
+  wipe(EATING_IDS)
+  wipe(WELLFED_IDS)
 
   local srcE = FurphyBuffData and FurphyBuffData["EATING"]
   if type(srcE) == "table" then
     for _, id in pairs(srcE) do
+      EATING_IDS[id] = true
       local info = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(id)
       local name = info and info.name
       if name then
@@ -50,6 +55,7 @@ function BuildNameSets()
   local srcW = FurphyBuffData and FurphyBuffData["WELLFED"]
   if type(srcW) == "table" then
     for _, id in pairs(srcW) do
+      WELLFED_IDS[id] = true
       local info = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(id)
       local name = info and info.name
       if name then
@@ -84,22 +90,46 @@ local function ClearEatingEntry()
   if cat then cat["EATING"] = nil end
 end
 
+-- Checks if an aura matches eating buffs by name or spellId.
+local function IsEatingAura(aura)
+  local nameSecret = issecretvalue and aura.name and issecretvalue(aura.name)
+  local idSecret   = issecretvalue and aura.spellId and issecretvalue(aura.spellId)
+  if not nameSecret and aura.name and EATING_NAMES[aura.name] then return true end
+  if not idSecret and aura.spellId and EATING_IDS[aura.spellId] then return true end
+  return false
+end
+
+-- Checks if an aura matches well-fed buffs by name or spellId.
+local function IsWellFedAura(aura)
+  local nameSecret = issecretvalue and aura.name and issecretvalue(aura.name)
+  local idSecret   = issecretvalue and aura.spellId and issecretvalue(aura.spellId)
+  if not nameSecret and aura.name and WELLFED_NAMES[aura.name] then return true end
+  if not idSecret and aura.spellId and WELLFED_IDS[aura.spellId] then return true end
+  return false
+end
+
 -- Scans the player's auras to check if they are currently eating.
 local function ScanPlayerEatingAura()
   local now = GetTime()
   for i=1, 40 do
     local aura = AuraByIndex and AuraByIndex("player", i, "HELPFUL")
     if not aura then break end
-    if issecretvalue and (issecretvalue(aura.name) or issecretvalue(aura.spellId)) then
-      -- skip secret auras
-    elseif aura.name and EATING_NAMES[aura.name] then
-      local exp = aura.expirationTime or 0
-      local dur = aura.duration or 0
-      if (not dur or dur <= 0) and exp and exp > 0 then
+    if IsEatingAura(aura) then
+      local exp = aura.expirationTime
+      local dur = aura.duration
+      -- Handle secret duration/expiration in M+
+      local expSecret = issecretvalue and exp and issecretvalue(exp)
+      local durSecret = issecretvalue and dur and issecretvalue(dur)
+      if expSecret or durSecret then
+        return true, aura, 0, 0, now, aura.auraInstanceID
+      end
+      exp = exp or 0
+      dur = dur or 0
+      if dur <= 0 and exp > 0 then
         dur = math.max(0, exp - now)
       end
-      local start = (exp and dur and exp > 0 and dur > 0) and (exp - dur) or now
-      return true, aura, exp or 0, dur or 0, start, aura.auraInstanceID
+      local start = (exp > 0 and dur > 0) and (exp - dur) or now
+      return true, aura, exp, dur, start, aura.auraInstanceID
     end
   end
   return false
@@ -111,10 +141,12 @@ local function HasWellFedOverThreshold(thresh)
   for i=1, 40 do
     local aura = AuraByIndex and AuraByIndex("player", i, "HELPFUL")
     if not aura then break end
-    if issecretvalue and (issecretvalue(aura.name) or issecretvalue(aura.spellId)) then
-      -- skip secret auras
-    elseif aura.name and WELLFED_NAMES[aura.name] then
+    if IsWellFedAura(aura) then
       local exp = aura.expirationTime
+      -- If expiration is secret (M+/encounters), assume well fed is active
+      if issecretvalue and exp and issecretvalue(exp) then
+        return true
+      end
       if exp and exp > now and (exp - now) > thresh then
         return true
       end
@@ -170,13 +202,7 @@ local function OnUnitAura(unit, updateInfo)
   if updateInfo.addedAuras then
     for i = 1, #updateInfo.addedAuras do
       local a = updateInfo.addedAuras[i]
-      local n = a and a.name
-      -- Secret values cannot be used as table keys; fall back to full rescan
-      if n and issecretvalue and issecretvalue(n) then
-        changed = true
-        break
-      end
-      if n and (EATING_NAMES[n] or WELLFED_NAMES[n]) then
+      if a and (IsEatingAura(a) or IsWellFedAura(a)) then
         changed = true
         break
       end
@@ -191,16 +217,9 @@ local function OnUnitAura(unit, updateInfo)
         break
       end
       local a = AuraByInstance("player", id)
-      if a then
-        local n = a.name
-        if n and issecretvalue and issecretvalue(n) then
-          changed = true
-          break
-        end
-        if n and (EATING_NAMES[n] or WELLFED_NAMES[n]) then
-          changed = true
-          break
-        end
+      if a and (IsEatingAura(a) or IsWellFedAura(a)) then
+        changed = true
+        break
       end
     end
   end
