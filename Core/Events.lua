@@ -58,6 +58,19 @@ local function refreshCooldowns()
   if type(ns.Cooldown_RefreshAll) == "function" then ns.Cooldown_RefreshAll() end
 end
 
+-- Tracks whether we are inside an active Mythic+ keystone run.
+-- In Midnight (12.0), aura/cooldown data returns secret values for the ENTIRE key,
+-- not just during combat or boss encounters. This makes buff detection unreliable,
+-- so we suppress the addon while a key is active.
+ns._inKeystoneRun = ns._inKeystoneRun or false
+
+local function checkKeystoneActive()
+  -- C_ChallengeMode.IsChallengeModeActive() returns true while a key is in progress
+  if C_ChallengeMode and C_ChallengeMode.IsChallengeModeActive then
+    ns._inKeystoneRun = C_ChallengeMode.IsChallengeModeActive()
+  end
+end
+
 -- Checks if an encounter is in progress
 local function inEncounter()
   if ns._inEncounter then return true end
@@ -74,6 +87,7 @@ end
 
 -- Checks if the addon should be locked (no updates) due to combat or other states
 local function locked()
+  if ns._inKeystoneRun then return true end
   if ns._inCombat then return true end
   if InCombatLockdown and InCombatLockdown() then return true end
   if inEncounter() then return true end
@@ -298,6 +312,16 @@ f:SetScript("OnEvent", function(_, event, ...)
     return
   end
 
+  -- On zone-in, check keystone state (handles disconnect/reconnect into active key)
+  if event == "PLAYER_ENTERING_WORLD" then
+    checkKeystoneActive()
+    if ns._inKeystoneRun then
+      if type(ns.MythicPlus_Recompute) == "function" then ns.MythicPlus_Recompute() end
+      if type(ns.CombatClearIcons) == "function" then ns.CombatClearIcons() end
+      return
+    end
+  end
+
   if locked() then return end
 
   if event == "PLAYER_ENTERING_WORLD" then
@@ -508,7 +532,17 @@ f:SetScript("OnEvent", function(_, event, ...)
   end
 
   if event == "CHALLENGE_MODE_START" or event == "CHALLENGE_MODE_RESET" or event == "CHALLENGE_MODE_COMPLETED" then
+    local wasInKey = ns._inKeystoneRun
+    checkKeystoneActive()
     if type(ns.MythicPlus_Recompute) == "function" then ns.MythicPlus_Recompute() end
+    if ns._inKeystoneRun and not wasInKey then
+      -- Key just started: hide all buttons (secret values make detection unreliable)
+      if type(ns.CombatClearIcons) == "function" then ns.CombatClearIcons() end
+    elseif wasInKey and not ns._inKeystoneRun then
+      -- Key just ended: restore buttons and do a full refresh
+      postCatchup()
+      if type(ns.CombatRestoreIcons) == "function" then ns.CombatRestoreIcons() end
+    end
     return
   end
 

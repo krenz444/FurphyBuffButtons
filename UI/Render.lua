@@ -265,6 +265,7 @@ end
 -- Main render function.
 -- Skipped during combat.
 function ns.RenderAll()
+  if ns._inKeystoneRun then return end
   if ns._combat_suspended or ns.InCombatSuppressed then return end
   if InCombatLockdown() then return end
 
