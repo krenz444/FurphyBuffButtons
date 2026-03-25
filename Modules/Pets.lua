@@ -95,6 +95,10 @@ local function applySpellCooldownFields(entry, spellID)
   local start = info and info.startTime or 0
   local duration = info and info.duration or 0
   local enabled = info and info.isEnabled
+  if issecretvalue and (issecretvalue(start) or issecretvalue(duration)) then
+    entry.cooldownStart, entry.cooldownDuration = nil, nil
+    return
+  end
   if enabled and start > 0 and duration and duration >= 1.5 then
     entry.cooldownStart    = start
     entry.cooldownDuration = duration

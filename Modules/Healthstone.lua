@@ -124,10 +124,6 @@ end
 
 -- Reads spell cooldown information.
 local function ReadSpellCooldown(spellID)
-  if GetSpellCooldown then
-    local start, dur, enable = GetSpellCooldown(spellID)
-    return start or 0, dur or 0, enable or 0
-  end
   if C_Spell and C_Spell.GetSpellCooldown then
     local cd = C_Spell.GetSpellCooldown(spellID)
     if type(cd) == "table" then
