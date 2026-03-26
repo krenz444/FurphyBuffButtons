@@ -8,6 +8,23 @@
                                                  CURRENT PATCH NOTES
 =======================================================================================================================
 
+**v8.0.1**
+
+- **Midnight Secret Value Fixes**
+  - Fixed "table index is secret" errors in PvP and M+ (FoodStatus, Flask, AugmentRune,
+    ShamanShields, RoguePoisons, WarlockSacrifice, MineOnly gate)
+  - Fixed "attempt to compare secret number" errors on spell/item cooldowns
+    (Pets, Healthstone, BagScan, Cosmetics, WeaponEnchants, Cooldown)
+  - Fixed aura expiration comparisons crashing with secret values (Buffs)
+  - Addon now hides all buttons during active M+ keystones (secret values make
+    buff detection unreliable for the entire key duration)
+  - Buttons automatically restore when the key ends
+- **Deprecated API Cleanup**
+  - Replaced removed UnitAura() with C_UnitAuras.GetAuraDataByIndex
+  - Replaced removed GetSpellInfo/GetSpellCooldown globals with C_Spell equivalents
+  - Removed dead COMBAT_LOG_EVENT_UNFILTERED code (event removed in 12.0)
+  - Removed UNIT_HEALTH/UNIT_MAXHEALTH registration (returns secret values)
+
 **v8.0.0**
 
 - **Midnight Expansion Support**
