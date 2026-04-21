@@ -71,7 +71,8 @@ local function GetExpireForIDs(ids)
       for j = 1, #ids do
         if a.spellId == ids[j] then
           local ex = a.expirationTime
-          if ex and ex > 0 and (not best or ex > best) then
+          -- Guard expirationTime against secret values (separate from spellId secrecy)
+          if ex and (not issecretvalue or not issecretvalue(ex)) and ex > 0 and (not best or ex > best) then
             best = ex
           end
         end

@@ -244,3 +244,13 @@ function ns.FoodStatus_OnUnitAura(unit, updateInfo)
   OnUnitAura(unit, updateInfo)
   if ns.Timer_RecomputeSchedule then ns.Timer_RecomputeSchedule() end
 end
+
+-- Invalidates the cached aura instance ID.
+-- In 12.0.5, aura instance IDs re-randomize when entering encounters, M+, or PvP,
+-- so our cached ID becomes stale and must be cleared.
+function ns.FoodStatus_InvalidateInstanceID()
+  lastInstanceID = nil
+  if not InCombatLockdown() then
+    ns.RecomputeEatingState()
+  end
+end

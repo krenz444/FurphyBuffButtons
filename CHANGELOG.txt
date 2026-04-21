@@ -8,6 +8,21 @@
                                                  CURRENT PATCH NOTES
 =======================================================================================================================
 
+**v8.1.0**
+
+- **Patch 12.0.5 Support**
+  - Updated Interface TOC to 120005 for WoW 12.0.5
+  - Added handling for aura instance ID re-randomization (new in 12.0.5)
+    - FoodStatus now invalidates cached instance IDs on encounter start/end,
+      M+ key start, and entering battlegrounds
+- **Additional Secret Value Fixes**
+  - Fixed GetWeaponEnchantInfo arithmetic crash in PlayerInfo (mhTime/1000)
+  - Fixed aura.expirationTime comparisons in MineOnly gate
+  - Fixed aura.expirationTime comparisons in AugmentRune
+  - Fixed aura.expirationTime guards in RoguePoisons (existing guard only
+    covered sourceUnit/name/spellId, not expirationTime)
+  - Fixed aura.expirationTime guards in ShamanShields (same pattern)
+
 **v8.0.1**
 
 - **Midnight Secret Value Fixes**

@@ -88,8 +88,15 @@ end
 function updateWeaponEnchants()
     if InCombatLockdown() then return end
     local mh, mhTime, _, _, oh, ohTime = GetWeaponEnchantInfo()
+    -- Guard against secret values from GetWeaponEnchantInfo in M+/PvP/combat
+    if issecretvalue then
+        if issecretvalue(mh) then mh = nil end
+        if issecretvalue(oh) then oh = nil end
+        if issecretvalue(mhTime) then mhTime = nil end
+        if issecretvalue(ohTime) then ohTime = nil end
+    end
     furphyBuffCache.playerInfo.weaponEnchants = {
-        mainhand = mh and (GetTime() + (mhTime/1000)) or nil,
-        offhand  = oh and (GetTime() + (ohTime/1000)) or nil,
+        mainhand = (mh and mhTime) and (GetTime() + (mhTime/1000)) or nil,
+        offhand  = (oh and ohTime) and (GetTime() + (ohTime/1000)) or nil,
     }
 end

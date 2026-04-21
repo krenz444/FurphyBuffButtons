@@ -103,8 +103,11 @@ local function auraRem(unit, buffId, mineOnly)
 
     if not isSecret and a.spellId == buffId then
       if not mineOnly or isMine then
-        if a.expirationTime and a.expirationTime > 0 then
-          return a.expirationTime - GetTime()
+        local ex = a.expirationTime
+        if ex and issecretvalue and issecretvalue(ex) then
+          return math.huge
+        elseif ex and ex > 0 then
+          return ex - GetTime()
         else
           return math.huge
         end

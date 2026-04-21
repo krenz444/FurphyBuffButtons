@@ -48,7 +48,8 @@ function ns.MineOnly_UnitHasBuff(unit, idSet, nameSet, nameMode)
     AuraUtil.ForEachAura(unit, "HELPFUL", nil, function(a)
       if _auraMatchesMineOnly(a, idSet, nameSet, nameMode) then
         found = true
-        if a.expirationTime and a.expirationTime > 0 then expire = a.expirationTime end
+        local ex = a.expirationTime
+        if ex and (not issecretvalue or not issecretvalue(ex)) and ex > 0 then expire = ex end
         return true
       end
     end, true)
@@ -59,7 +60,8 @@ function ns.MineOnly_UnitHasBuff(unit, idSet, nameSet, nameMode)
       if not a then break end
       if _auraMatchesMineOnly(a, idSet, nameSet, nameMode) then
         found = true
-        if a.expirationTime and a.expirationTime > 0 then expire = a.expirationTime end
+        local ex = a.expirationTime
+        if ex and (not issecretvalue or not issecretvalue(ex)) and ex > 0 then expire = ex end
         break
       end
       i = i + 1

@@ -285,9 +285,13 @@ f:SetScript("OnEvent", function(_, event, ...)
     return
   elseif event == "ENCOUNTER_START" then
     ns._inEncounter = true
+    -- 12.0.5: aura instance IDs re-randomize on encounter start
+    if type(ns.FoodStatus_InvalidateInstanceID) == "function" then ns.FoodStatus_InvalidateInstanceID() end
     return
   elseif event == "ENCOUNTER_END" then
     ns._inEncounter = false
+    -- 12.0.5: invalidate cached aura instance IDs after encounter
+    if type(ns.FoodStatus_InvalidateInstanceID) == "function" then ns.FoodStatus_InvalidateInstanceID() end
     if type(ns.Healthstone_OnEncounterEnd) == "function" then if ns.Healthstone_OnEncounterEnd() then armPoke(debounce) end end
     if not isDead() then postCatchup() end
     return
@@ -376,6 +380,10 @@ f:SetScript("OnEvent", function(_, event, ...)
   end
 
   if event == "PLAYER_LEVEL_UP" or event == "PLAYER_UPDATE_RESTING" or event == "ZONE_CHANGED_NEW_AREA" or event == "PLAYER_DIFFICULTY_CHANGED" or event == "PLAYER_ENTERING_BATTLEGROUND" then
+    -- 12.0.5: aura instance IDs re-randomize on PvP/zone transitions
+    if event == "PLAYER_ENTERING_BATTLEGROUND" and type(ns.FoodStatus_InvalidateInstanceID) == "function" then
+      ns.FoodStatus_InvalidateInstanceID()
+    end
     if type(ns.Recuperate_Recompute) == "function" then ns.Recuperate_Recompute() end
     if type(ns.MarkGatesDirty) == "function" then ns.MarkGatesDirty() end
     if type(ns.MythicPlus_Recompute) == "function" then ns.MythicPlus_Recompute() end
@@ -534,6 +542,8 @@ f:SetScript("OnEvent", function(_, event, ...)
   if event == "CHALLENGE_MODE_START" or event == "CHALLENGE_MODE_RESET" or event == "CHALLENGE_MODE_COMPLETED" then
     local wasInKey = ns._inKeystoneRun
     checkKeystoneActive()
+    -- 12.0.5: aura instance IDs re-randomize on M+ start
+    if type(ns.FoodStatus_InvalidateInstanceID) == "function" then ns.FoodStatus_InvalidateInstanceID() end
     if type(ns.MythicPlus_Recompute) == "function" then ns.MythicPlus_Recompute() end
     if ns._inKeystoneRun and not wasInKey then
       -- Key just started: hide all buttons (secret values make detection unreliable)
